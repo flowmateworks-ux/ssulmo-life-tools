@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://flowmateworks-ux.github.io/ssulmo-life-tools/sitemap.xml
