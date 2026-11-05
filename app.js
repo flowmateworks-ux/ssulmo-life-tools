@@ -21,7 +21,7 @@ text("saveResult",due===0?"목표 달성":monthly===0?"월 저축액을 입력�
 text("saveDetail","추가 필요 금액 "+money(due));
 const durationEl=document.getElementById("duration");
 const duration=Number(durationEl?.value);
-text("cutResult",durationEl?.value?.trim()!==""&&Number.isFinite(duration)&&duration>0&&duration<=1200?money(num("cut")*duration):"기간을 1~1200개월로 입력해 주세요");
+text("cutResult",durationEl?.value?.trim()!==""&&Number.isInteger(duration)&&duration>0&&duration<=1200?money(num("cut")*duration):"기간을 1~1200개월로 입력해 주세요");
 }
 document.querySelectorAll('input[type="number"]').forEach(el=>el.addEventListener("input",update));
 text("year",new Date().getFullYear());update();
@@ -35,7 +35,7 @@ Object.entries(calculatorGroups).forEach(([name,ids])=>{
     if(!current||current.value.trim()==="")return;
     const value=Number(current.value);
     if(!Number.isFinite(value)||value<0||value>1e12)return;
-    if(name==="subscription"&&id==="duration"&&(value<1||value>1200))return;
+    if(name==="subscription"&&id==="duration"&&(!Number.isInteger(value)||value<1||value>1200))return;
     tracked=true;
     if(typeof window.gtag==="function")window.gtag("event","calculator_used",{calculator_type:name});
   }));
