@@ -23,3 +23,13 @@ text("cutResult",money(num("cut")*Math.max(1,num("duration"))));
 }
 document.querySelectorAll('input[type="number"]').forEach(el=>el.addEventListener("input",update));
 text("year",new Date().getFullYear());update();
+// 사용자가 계산기를 처음 조작했는지만 기록합니다. 입력한 금액은 전송하지 않습니다.
+const calculatorGroups={salary:["pay","living","saving","invest","extra"],fixed:["rent","phone","insurance","subs","other"],savings:["goal","saved","monthly"],subscription:["cut","duration"]};
+Object.entries(calculatorGroups).forEach(([name,ids])=>{
+  let tracked=false;
+  ids.forEach(id=>document.getElementById(id)?.addEventListener("input",()=>{
+    if(tracked)return;
+    tracked=true;
+    if(typeof window.gtag==="function")window.gtag("event","calculator_used",{calculator_type:name});
+  }));
+});
