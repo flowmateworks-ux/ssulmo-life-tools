@@ -1,7 +1,7 @@
 "use strict";
 const f=new Intl.NumberFormat("ko-KR");
 const money=n=>f.format(Math.round(n))+"원";
-const num=id=>{const el=document.getElementById(id);const v=Number(el?.value);return Number.isFinite(v)?Math.max(0,v):0};
+const num=id=>{const el=document.getElementById(id);const v=Number(el?.value);return Number.isFinite(v)?Math.min(1e12,Math.max(0,v)):0};
 const text=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
 function update(){
 const pay=num("pay"),living=num("living"),saving=num("saving"),invest=num("invest"),extra=num("extra");
@@ -19,7 +19,9 @@ text("costResult",money(fixed));text("yearResult","1년이면 "+money(fixed*12))
 const due=Math.max(0,num("goal")-num("saved")),monthly=num("monthly");
 text("saveResult",due===0?"목표 달성":monthly===0?"월 저축액을 입력해 주세요":f.format(Math.ceil(due/monthly))+"개월");
 text("saveDetail","추가 필요 금액 "+money(due));
-text("cutResult",money(num("cut")*Math.max(1,num("duration"))));
+const durationEl=document.getElementById("duration");
+const duration=Number(durationEl?.value);
+text("cutResult",durationEl?.value?.trim()!==""&&Number.isFinite(duration)&&duration>0&&duration<=1200?money(num("cut")*duration):"기간을 1~1200개월로 입력해 주세요");
 }
 document.querySelectorAll('input[type="number"]').forEach(el=>el.addEventListener("input",update));
 text("year",new Date().getFullYear());update();
@@ -29,6 +31,11 @@ Object.entries(calculatorGroups).forEach(([name,ids])=>{
   let tracked=false;
   ids.forEach(id=>document.getElementById(id)?.addEventListener("input",()=>{
     if(tracked)return;
+    const current=document.getElementById(id);
+    if(!current||current.value.trim()==="")return;
+    const value=Number(current.value);
+    if(!Number.isFinite(value)||value<0||value>1e12)return;
+    if(name==="subscription"&&id==="duration"&&(value<1||value>1200))return;
     tracked=true;
     if(typeof window.gtag==="function")window.gtag("event","calculator_used",{calculator_type:name});
   }));
