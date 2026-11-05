@@ -1,1 +1,58 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>쓸모산책 도구함 | 무료 생활 계산기</title><meta name="description" content="월 고정비, 저축 목표 기간, 구독료 절약액을 계산하고 가습기 청소 체크리스트를 확인해 보세요."><link rel="stylesheet" href="style.css"></head><body><header><div class="wrap"><a class="brand" href="./">쓸모산책 <span>도구함</span></a><nav><a href="#tools">무료 도구</a><a href="#guides">안내</a><a href="about.html">소개</a></nav></div></header><main class="wrap"><section class="hero"><p class="eyebrow">무료 · 로그인 불필요</p><h1>생활 속 숫자, <em>쉽게 계산하세요.</em></h1><p>지출을 정리하고 저축 계획을 세우는 작은 도구들입니다. 입력한 금액은 자체 서버로 전송하지 않습니다.</p></section><section id="tools"><h2>무료 생활 도구</h2><div class="cards"><article class="panel"><h3>월 고정비 계산기</h3><p>매달 나가는 비용을 확인합니다.</p><label>주거비 (원)<input id="rent" type="number" min="0" value="400000"></label><label>통신비 (원)<input id="phone" type="number" min="0" value="60000"></label><label>보험료 (원)<input id="insurance" type="number" min="0" value="100000"></label><label>구독료 (원)<input id="subs" type="number" min="0" value="30000"></label><label>기타 (원)<input id="other" type="number" min="0" value="0"></label><div class="result" aria-live="polite"><small>월 고정비 합계</small><strong id="costResult">590,000원</strong><span id="yearResult">연간 7,080,000원</span></div></article><article class="panel"><h3>목표 저축 기간 계산기</h3><p>이자 및 수익률을 제외한 단순 계산입니다.</p><label>목표 금액 (원)<input id="goal" type="number" min="0" value="10000000"></label><label>현재 모은 금액 (원)<input id="saved" type="number" min="0" value="1000000"></label><label>월 저축액 (원)<input id="monthly" type="number" min="0" value="500000"></label><div class="result" aria-live="polite"><small>목표까지 예상 기간</small><strong id="saveResult">18개월</strong><span id="saveDetail">단순 저축 기준</span></div></article><article class="panel"><h3>구독료 절약 계산기</h3><p>정리할 구독 서비스의 누적 절약액입니다.</p><label>매월 줄일 구독료 (원)<input id="cut" type="number" min="0" value="15000"></label><label>유지할 기간 (개월)<input id="duration" type="number" min="1" value="12"></label><div class="result" aria-live="polite"><small>예상 누적 절약액</small><strong id="cutResult">180,000원</strong><span>기간 내내 동일한 구독료를 가정합니다.</span></div></article><article class="panel"><h3>가습기 청소 전 체크리스트</h3><p>제품에 맞는 안전한 세척 방법을 확인하세요.</p><div class="checks"><label><input type="checkbox"> 제조사 설명서에서 세척 방법 확인</label><label><input type="checkbox"> 구연산 사용 가능 여부 및 대상 부품 확인</label><label><input type="checkbox"> 전원 차단 및 충분한 냉각 확인</label><label><input type="checkbox"> 세제 잔여물이 없도록 헹굼</label><label><input type="checkbox"> 완전히 건조 후 조립</label></div><p class="note">제조사 설명서가 우선입니다. 제품에 따라 구연산 사용이 금지될 수 있습니다.</p></article></div></section><section id="guides" class="guides"><h2>도구 사용 안내</h2><details><summary>고정비에는 어떤 항목을 넣나요?</summary><p>월세·관리비, 통신비, 보험료, 정기 구독처럼 매달 비교적 일정한 비용을 입력합니다.</p></details><details><summary>저축 기간은 왜 실제와 다를 수 있나요?</summary><p>이자, 투자 수익, 세금, 중간 인출을 반영하지 않기 때문입니다.</p></details><details><summary>가습기에 구연산을 사용해도 되나요?</summary><p>기기마다 다릅니다. 반드시 제조사 설명서를 확인하세요. 세척제를 분무해서는 안 됩니다.</p></details></section><section class="notice"><h2>운영 및 광고 안내</h2><p>현재 광고나 제휴 링크는 없습니다. 추가될 경우 명확히 표시할 예정입니다.</p></section></main><footer><div class="wrap">© <span id="year"></span> 쓸모산책 도구함 · <a href="privacy.html">개인정보 안내</a> · <a href="about.html">사이트 소개</a></div></footer><script src="app.js" defer></script></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#fbfaf7">
+<meta name="description" content="월급 배분, 고정비, 저축 목표, 구독료를 한눈에 계산하는 무료 생활비 도구. 회원가입 없이 바로 사용하세요.">
+<title>쓸모산책 | 내 돈을 이해하는 쉬운 계산기</title>
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#tools">계산기 바로가기</a>
+<header class="site-header"><div class="container header-inner">
+<a href="./" class="logo" aria-label="쓸모산책 홈"><span class="logo-mark">쓸</span><span>쓸모산책</span></a>
+<nav aria-label="주 메뉴"><a href="#tools">무료 계산기</a><a href="#help">이용 안내</a><a href="about.html">소개</a></nav>
+</div></header>
+<main>
+<section class="hero"><div class="container">
+<div class="hero-text"><span class="eyebrow"><span class="eyebrow-dot"></span> 일상을 더 편리하게</span>
+<h1>복잡한 돈 계산,<br><span class="accent">쉽고 명확하게.</span></h1>
+<p>내 월급은 어떻게 나눌까요? 저축 목표까지 얼마나 걸릴까요?<br class="desktop-only"> 필요한 숫자만 입력하면 결과를 바로 보여드립니다.</p>
+<div class="hero-actions"><a class="primary-btn" href="#tools">무료 계산기 시작하기 <span aria-hidden="true">↗</span></a><span class="hero-note">무료 · 회원가입 없음 · 설치 불필요</span></div>
+</div>
+<div class="hero-art" aria-hidden="true"><div class="art-title">이번 달 돈 관리</div><div class="art-amount">2,800,000 <small>원</small></div><div class="art-bars"><span style="width:38%;background:#2c8278"></span><span style="width:29%;background:#b5a9e9"></span><span style="width:19%;background:#f2bd81"></span><span style="width:14%;background:#d7e4e3"></span></div><div class="art-legend"><span><i class="dot green"></i> 생활비</span><span><i class="dot purple"></i> 저축</span><span><i class="dot peach"></i> 투자</span></div><div class="art-foot">내 생활에 맞게 나누고 조정해 보세요.</div></div>
+</div></section>
+<section id="tools" class="tools-section"><div class="container">
+<div class="section-top"><div><div class="section-kicker">FREE TOOLS</div><h2>필요한 계산기를 골라보세요</h2><p>어떤 계산기든 입력과 동시에 결과가 바뀝니다.</p></div><span class="count-tag">4가지 무료 도구</span></div>
+<div class="tool-nav" aria-label="계산기로 이동"><a href="#salary"><span>01</span> 월급 배분</a><a href="#fixed"><span>02</span> 고정비</a><a href="#savings"><span>03</span> 저축 목표</a><a href="#subscription"><span>04</span> 구독료 절약</a></div>
+<div class="tool-grid">
+<article class="tool-card feature" id="salary"><div class="card-top"><div class="card-icon mint" aria-hidden="true">₩</div><div class="card-index">01 / MONTHLY PLAN</div></div><h3>월급 배분 계산기</h3><p class="card-desc">받은 월급을 생활비·저축·투자에 나눠 보세요.</p>
+<div class="fields">
+<label for="pay">월 실수령액 <span>원</span></label><input id="pay" inputmode="numeric" type="number" min="0" step="10000" value="2800000">
+<div class="two-fields"><div><label for="living">생활비 <span>원</span></label><input id="living" inputmode="numeric" type="number" min="0" step="10000" value="1200000"></div><div><label for="saving">저축 <span>원</span></label><input id="saving" inputmode="numeric" type="number" min="0" step="10000" value="900000"></div></div>
+<div class="two-fields"><div><label for="invest">투자 <span>원</span></label><input id="invest" inputmode="numeric" type="number" min="0" step="10000" value="500000"></div><div><label for="extra">기타 배분 <span>원</span></label><input id="extra" inputmode="numeric" type="number" min="0" step="10000" value="0"></div></div>
+</div>
+<div class="output main-output" aria-live="polite"><div class="result-label" id="salaryLabel">아직 배분하지 않은 금액</div><strong id="salaryResult">200,000원</strong><div class="distribution" id="distribution" role="img" aria-label="월급 배분 비율"></div><div class="output-sub" id="salaryDetails">배분 금액과 남은 금액을 비교해 보세요.</div></div>
+</article>
+<article class="tool-card" id="fixed"><div class="card-top"><div class="card-icon lavender" aria-hidden="true">≋</div><div class="card-index">02 / FIXED COST</div></div><h3>월 고정비 계산기</h3><p class="card-desc">매달 빠져나가는 비용이 얼마인지 확인해 보세요.</p>
+<div class="fields"><div class="two-fields"><div><label for="rent">주거비 <span>원</span></label><input id="rent" inputmode="numeric" type="number" min="0" value="400000"></div><div><label for="phone">통신비 <span>원</span></label><input id="phone" inputmode="numeric" type="number" min="0" value="60000"></div></div><div class="two-fields"><div><label for="insurance">보험료 <span>원</span></label><input id="insurance" inputmode="numeric" type="number" min="0" value="100000"></div><div><label for="subs">구독료 <span>원</span></label><input id="subs" inputmode="numeric" type="number" min="0" value="30000"></div></div><label for="other">기타 고정비 <span>원</span></label><input id="other" inputmode="numeric" type="number" min="0" value="0"></div>
+<div class="output" aria-live="polite"><div class="result-label">월 고정비 합계</div><strong id="costResult">590,000원</strong><div class="output-sub" id="yearResult">1년이면 7,080,000원</div></div>
+</article>
+<article class="tool-card" id="savings"><div class="card-top"><div class="card-icon peach-bg" aria-hidden="true">◎</div><div class="card-index">03 / SAVING GOAL</div></div><h3>목표 저축 기간 계산기</h3><p class="card-desc">매달 얼마씩 모으면 목표에 도달할까요?</p>
+<div class="fields"><label for="goal">목표 금액 <span>원</span></label><input id="goal" inputmode="numeric" type="number" min="0" value="10000000"><label for="saved">현재 모은 금액 <span>원</span></label><input id="saved" inputmode="numeric" type="number" min="0" value="1000000"><label for="monthly">매달 저축할 금액 <span>원</span></label><input id="monthly" inputmode="numeric" type="number" min="0" value="500000"></div>
+<div class="output" aria-live="polite"><div class="result-label">목표까지 남은 기간</div><strong id="saveResult">18개월</strong><div class="output-sub" id="saveDetail">추가 필요 금액 9,000,000원</div></div><p class="fine-print">※ 이자, 투자 수익, 세금은 제외한 단순 계산입니다.</p>
+</article>
+<article class="tool-card" id="subscription"><div class="card-top"><div class="card-icon blue-bg" aria-hidden="true">↘</div><div class="card-index">04 / SUBSCRIPTION</div></div><h3>구독료 절약 계산기</h3><p class="card-desc">구독 서비스 하나만 줄여도 얼마나 아낄까요?</p>
+<div class="fields"><label for="cut">매월 줄일 구독료 <span>원</span></label><input id="cut" inputmode="numeric" type="number" min="0" value="15000"><label for="duration">절약할 기간 <span>개월</span></label><input id="duration" inputmode="numeric" type="number" min="1" value="12"></div>
+<div class="output" aria-live="polite"><div class="result-label">예상 누적 절약액</div><strong id="cutResult">180,000원</strong><div class="output-sub">같은 금액을 매달 절약한다고 가정합니다.</div></div>
+</article>
+</div>
+</div></section>
+<section class="benefits"><div class="container benefits-grid"><div><span class="benefit-icon">✓</span><h3>바로 사용할 수 있어요</h3><p>가입이나 앱 설치 없이 계산할 수 있습니다.</p></div><div><span class="benefit-icon">↺</span><h3>숫자를 바꾸면 즉시 반영</h3><p>여러 금액을 바꿔 보며 비교해 보세요.</p></div><div><span class="benefit-icon">⌁</span><h3>입력값은 기기에만</h3><p>계산을 위해 자체 서버에 입력값을 전송하지 않습니다.</p></div></div></section>
+<section class="help" id="help"><div class="container help-inner"><div><div class="section-kicker">GUIDE</div><h2>자주 묻는 질문</h2><p>처음 이용하셔도 어렵지 않도록 설명해 드립니다.</p></div><div class="faq"><details><summary>월급 배분 계산기는 어떻게 사용하나요?</summary><p>통장에 실제로 들어온 월급과 생활비, 저축, 투자 등으로 나눌 금액을 입력해 주세요. 남은 금액이나 초과 배분된 금액을 바로 확인할 수 있습니다.</p></details><details><summary>월 고정비에는 어떤 비용을 넣나요?</summary><p>월세·관리비, 통신비, 보험료, 정기 구독 등 매달 반복적으로 나가는 비용을 입력해 주세요. 한 번만 발생하는 비용은 제외하는 것이 비교하기 편리합니다.</p></details><details><summary>저축 목표 날짜가 실제와 달라질 수 있나요?</summary><p>네. 계산기는 매월 동일한 금액을 저축한다고 가정하며 이자나 투자 수익, 중도 인출 등을 반영하지 않습니다.</p></details><details><summary>입력한 금융 정보가 저장되나요?</summary><p>현재 계산은 방문자의 브라우저에서 처리되며, 저희 자체 서버로 금액을 보내거나 계정에 저장하지 않습니다.</p></details></div></div></section>
+<section class="closing"><div class="container"><div><h2>작은 계산부터, 더 나은 일상으로.</h2><p>쓸모산책은 누구나 편하게 쓸 수 있는 생활 도구를 하나씩 만들어 갑니다.</p></div><a href="#tools">계산기 다시 보기 <span aria-hidden="true">↑</span></a></div></section>
+</main>
+<footer><div class="container footer-inner"><div><a class="footer-brand" href="./">쓸모산책</a><p>일상에 필요한 정보를 쉽고 쓸모 있게.</p><small>© <span id="year">2026</span> 쓸모산책</small></div><div class="footer-links"><a href="about.html">사이트 소개</a><a href="privacy.html">개인정보 안내</a></div></div><div class="container disclaimer">현재 광고·제휴 링크는 없습니다. 계산 결과는 참고용이며 전문적인 재무 자문을 대신하지 않습니다.</div></footer>
+</body></html>
