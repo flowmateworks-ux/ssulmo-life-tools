@@ -35,8 +35,15 @@ Object.entries(calculatorGroups).forEach(([name,ids])=>{
     if(!current||current.value.trim()==="")return;
     const value=Number(current.value);
     if(!Number.isFinite(value)||value<0||value>1e12)return;
-    if(name==="subscription"&&id==="duration"&&(!Number.isInteger(value)||value<1||value>1200))return;
+    if(name==="subscription"){
+      const cutEl=document.getElementById("cut");
+      const durationEl=document.getElementById("duration");
+      if(!cutEl||!durationEl||cutEl.value.trim()===""||durationEl.value.trim()==="")return;
+      const cut=Number(cutEl.value),duration=Number(durationEl.value);
+      if(!Number.isFinite(cut)||cut<0||cut>1e12||!Number.isInteger(duration)||duration<1||duration>1200)return;
+    }
+    if(typeof window.gtag!=="function")return;
     tracked=true;
-    if(typeof window.gtag==="function")window.gtag("event","calculator_used",{calculator_type:name});
+    window.gtag("event","calculator_used",{calculator_type:name});
   }));
 });
