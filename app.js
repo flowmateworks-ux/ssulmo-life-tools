@@ -21,7 +21,12 @@ text("saveResult",due===0?"목표 달성":monthly===0?"월 저축액을 입력�
 text("saveDetail","추가 필요 금액 "+money(due));
 const durationEl=document.getElementById("duration");
 const duration=Number(durationEl?.value);
-text("cutResult",durationEl?.value?.trim()!==""&&Number.isInteger(duration)&&duration>0&&duration<=1200?money(num("cut")*duration):"기간을 1~1200개월로 입력해 주세요");
+const cutEl=document.getElementById("cut");
+const cutRaw=cutEl?.value?.trim()??"";
+const cutValue=Number(cutRaw);
+const validDuration=durationEl?.value?.trim()!==""&&Number.isInteger(duration)&&duration>=1&&duration<=1200;
+const validCut=cutRaw!==""&&Number.isFinite(cutValue)&&cutValue>=0&&cutValue<=1e12;
+text("cutResult",!validDuration?"기간을 1~1200개월로 입력해 주세요":!validCut?"절약 금액을 0원 이상으로 입력해 주세요":money(cutValue*duration));
 }
 document.querySelectorAll('input[type="number"]').forEach(el=>el.addEventListener("input",update));
 text("year",new Date().getFullYear());update();
