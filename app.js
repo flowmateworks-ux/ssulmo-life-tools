@@ -69,25 +69,48 @@ function update(){
 }
 document.querySelectorAll('input[type="number"]').forEach(el=>el.addEventListener("input",update));
 text("year",new Date().getFullYear());update();
-// 사용자가 계산기를 처음 조작했는지만 기록합니다. 입력한 금액은 전송하지 않습니다.
+// 최초 유효 입력은 GA4 로딩이 늦어도 최대 30초간 대기 후 한 번만 전송합니다.
+// 금액·개인정보는 이벤트에 포함하지 않습니다. 미전송 시 추후 재입력으로 다시 시도할 수 있습니다.
 const calculatorGroups={salary:["pay","living","saving","invest","extra"],fixed:["rent","phone","insurance","subs","other"],savings:["goal","saved","monthly"],subscription:["cut","duration"]};
 Object.entries(calculatorGroups).forEach(([name,ids])=>{
-  let tracked=false;
+  let tracked=false,pending=false,retryTimer=null,deadline=0;
+  const valid=()=>{
+    const result=readGroup(name);
+    if(result.error)return false;
+    if(name==="salary"){
+      const {pay,living,saving,invest,extra}=result.values;
+      const used=safeSum([living,saving,invest,extra]);
+      return used!==null&&Number.isSafeInteger(pay-used);
+    }
+    if(name==="fixed"){
+      const sum=safeSum(Object.values(result.values));
+      return sum!==null&&Number.isSafeInteger(sum*12);
+    }
+    if(name==="subscription"){
+      const {cut,duration}=result.values;
+      return Number.isSafeInteger(cut*duration);
+    }
+    return true;
+  };
+  const flush=()=>{
+    if(tracked||!pending)return;
+    if(!valid()){pending=false;clearInterval(retryTimer);retryTimer=null;return;}
+    if(typeof window.gtag!=="function")return;
+    try{
+      window.gtag("event","calculator_used",{calculator_type:name});
+      tracked=true;pending=false;clearInterval(retryTimer);retryTimer=null;
+    }catch(_error){/* 다음 재시도 또는 사용자 입력에서 복구 */}
+  };
   ids.forEach(id=>document.getElementById(id)?.addEventListener("input",()=>{
     if(tracked)return;
-    const current=document.getElementById(id);
-    if(!current||current.value.trim()==="")return;
-    const value=Number(current.value);
-    if(!Number.isFinite(value)||value<0||value>1e12)return;
-    if(name==="subscription"){
-      const cutEl=document.getElementById("cut");
-      const durationEl=document.getElementById("duration");
-      if(!cutEl||!durationEl||cutEl.value.trim()===""||durationEl.value.trim()==="")return;
-      const cut=Number(cutEl.value),duration=Number(durationEl.value);
-      if(!Number.isFinite(cut)||cut<0||cut>1e12||!Number.isInteger(duration)||duration<1||duration>1200)return;
+    if(!valid()){pending=false;clearInterval(retryTimer);retryTimer=null;return;}
+    pending=true;flush();
+    if(!tracked&&retryTimer===null){
+      deadline=Date.now()+30000;
+      retryTimer=setInterval(()=>{
+        flush();
+        if(!tracked&&Date.now()>=deadline){clearInterval(retryTimer);retryTimer=null;pending=false;}
+      },500);
     }
-    if(typeof window.gtag!=="function")return;
-    tracked=true;
-    window.gtag("event","calculator_used",{calculator_type:name});
   }));
 });
