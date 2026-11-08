@@ -28,13 +28,21 @@ try {
     change('pay','2800000');
     check('salary restored',document.getElementById('salaryResult').textContent.includes('원'));
     check('salary bar restored',document.getElementById('distribution').children.length===4);
+    change('living','2900000');
+    check('salary overspend style set',document.querySelector('#salary .output').classList.contains('is-negative'));
+    change('living','-1');
+    check('salary invalid clears overspend style',!document.querySelector('#salary .output').classList.contains('is-negative'));
+    change('living','1200000');
+    check('salary valid clears invalid state',document.getElementById('living').getAttribute('aria-invalid')==='false');
     change('rent','');
     check('fixed blank rejected',document.getElementById('costResult').textContent==='계산할 수 없습니다');
     change('rent','0');
     check('fixed zero restored',document.getElementById('costResult').textContent.includes('원'));
     change('cut','9007199254740991');
     check('subscription multiplication overflow rejected',document.getElementById('cutResult').textContent==='계산할 수 없습니다');
-    check('savings unaffected',document.getElementById('saveResult').textContent.length>0);
+    check('savings unaffected',document.getElementById('saveResult').textContent==='18개월');
+    const salaryEvents=window.dataLayer.filter(x=>x[0]==='event'&&x[1]==='calculator_used'&&x[2]?.calculator_type==='salary');
+    check('salary event at most once',salaryEvents.length<=1);
     const out=document.createElement('pre');out.id='qa-results';out.textContent=JSON.stringify(results);document.body.append(out);
   });
   </script>`;
@@ -46,6 +54,7 @@ try {
   const match=r.stdout.match(/<pre id="qa-results">([^<]+)<\/pre>/);
   assert.ok(match,'Chromium did not return QA results; stderr: '+r.stderr.slice(0,500));
   const results=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
+  assert.equal(results.length,14,'Expected exactly 14 browser checks');
   for(const test of results)console.log((test.pass?'PASS':'FAIL')+' '+test.name);
   assert.ok(results.every(x=>x.pass),'Browser DOM regression failed');
 }finally{rmSync(tmp,{recursive:true,force:true});}
