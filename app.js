@@ -22,6 +22,8 @@ function safeSum(values){let total=0;for(const v of values){total+=v;if(!Number.
 function groupError(name,message){
   const card=document.getElementById(name);
   if(!card)return;
+  // 이전 초과 배분 상태가 입력 오류 화면에 남지 않도록 초기화합니다.
+  if(name==="salary"&&message)card.querySelector(".output")?.classList.remove("is-negative");
   let notice=card.querySelector(".calculator-error");
   if(!notice){notice=document.createElement("p");notice.className="calculator-error";notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");notice.style.color="#a32b2b";notice.style.fontWeight="600";card.querySelector(".fields")?.appendChild(notice);}
   notice.textContent=message||"";
