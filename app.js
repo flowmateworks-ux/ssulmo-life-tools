@@ -29,11 +29,11 @@ function groupError(name,message){
 }
 function update(){
   const salary=readGroup("salary");
-  if(salary.error){groupError("salary",salary.error);text("salaryResult","계산할 수 없습니다");text("salaryDetails","입력값을 확인해 주세요.");}
+  if(salary.error){groupError("salary",salary.error);text("salaryLabel","입력 오류");text("salaryResult","계산할 수 없습니다");text("salaryDetails","입력값을 확인해 주세요.");const bar=document.getElementById("distribution");if(bar){bar.replaceChildren();bar.setAttribute("aria-label","입력 오류로 배분 그래프를 표시할 수 없습니다.");}}
   else{
     const {pay,living,saving,invest,extra}=salary.values;
     const parts=[living,saving,invest,extra],used=safeSum(parts),remaining=pay-used;
-    if(used===null||!Number.isSafeInteger(remaining)){groupError("salary","합계가 안전한 계산 범위를 초과했습니다.");text("salaryResult","계산할 수 없습니다");text("salaryDetails","입력값을 확인해 주세요.");}
+    if(used===null||!Number.isSafeInteger(remaining)){groupError("salary","합계가 안전한 계산 범위를 초과했습니다.");text("salaryLabel","계산 범위 초과");text("salaryResult","계산할 수 없습니다");text("salaryDetails","입력값을 확인해 주세요.");const bar=document.getElementById("distribution");if(bar){bar.replaceChildren();bar.setAttribute("aria-label","계산 범위 초과로 배분 그래프를 표시할 수 없습니다.");}}
     else{
       groupError("salary","");
       text("salaryLabel",remaining<0?"월급을 초과한 금액":"아직 배분하지 않은 금액");
