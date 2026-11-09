@@ -60,7 +60,7 @@ function update(){
       groupError("salary","");
       text("salaryLabel",remaining<0?"월급을 초과한 금액":"아직 배분하지 않은 금액");
       text("salaryResult",money(Math.abs(remaining)));
-      text("salaryDetails","배분 합계 "+money(used)+" · 월급 대비 "+(pay>0?(used/pay*100).toFixed(1):"0")+"%");
+      text("salaryDetails","배분 합계 "+money(used)+" · "+(pay>0?"월급 대비 "+(used/pay*100).toFixed(1)+"%":"월급 대비 비율 산출 불가 (월급 0원)"));
       document.getElementById("salary")?.querySelector(".output")?.classList.toggle("is-negative",remaining<0);
       const bar=document.getElementById("distribution");
       if(bar){const denominator=Math.max(pay,used,1),colors=["#2c8278","#b5a9e9","#f2bd81","#86adca"];bar.replaceChildren(...parts.map((v,i)=>{const s=document.createElement("span");s.style.width=(v/denominator*100)+"%";s.style.background=colors[i];return s}));bar.setAttribute("aria-label","생활비 "+money(living)+", 저축 "+money(saving)+", 투자 "+money(invest)+", 기타 "+money(extra));}
