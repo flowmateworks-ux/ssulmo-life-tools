@@ -112,6 +112,11 @@ Object.entries(calculatorGroups).forEach(([name,ids])=>{
       const {cut,duration}=result.values;
       return Number.isSafeInteger(cut*duration);
     }
+    if(name==="savings"){
+      const {goal,saved,monthly}=result.values;
+      // A zero monthly deposit cannot produce a completion date unless the goal is already met.
+      return goal<=saved||monthly>0;
+    }
     return true;
   };
   const flush=()=>{
