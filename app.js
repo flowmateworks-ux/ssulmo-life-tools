@@ -27,7 +27,12 @@ function groupError(name,message){
   let notice=card.querySelector(".calculator-error");
   if(!notice){notice=document.createElement("p");notice.className="calculator-error";notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");notice.style.color="#a32b2b";notice.style.fontWeight="600";card.querySelector(".fields")?.appendChild(notice);}
   notice.textContent=message||"";
-  card.querySelectorAll('input[type="number"]').forEach(el=>{const invalid=message&&readGroup(name).field===el.id;el.setAttribute("aria-invalid",invalid?"true":"false");});
+  // 각 필드를 독립 검증해 여러 입력 오류도 모두 표시합니다.
+  card.querySelectorAll('input[type="number"]').forEach(el=>{
+    const raw=el.value.trim(),value=Number(raw);
+    const invalid=Boolean(message)&&(raw===""||!Number.isSafeInteger(value)||value<0||(el.id==="duration"&&(value<1||value>1200)));
+    el.setAttribute("aria-invalid",invalid?"true":"false");
+  });
 }
 function update(){
   const salary=readGroup("salary");
