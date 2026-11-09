@@ -78,7 +78,7 @@ function update(){
   else{
     groupError("savings","");
     const {goal,saved,monthly}=savings.values,due=Math.max(0,goal-saved);
-    text("saveResult",due===0?"목표 달성":monthly===0?"월 저축액을 입력해 주세요":f.format(Math.ceil(due/monthly))+"개월");
+    text("saveResult",due===0?"목표 달성":monthly===0?"월 저축액이 0원이라 달성 시점을 계산할 수 없습니다":f.format(Math.ceil(due/monthly))+"개월");
     text("saveDetail","추가 필요 금액 "+money(due));
   }
   const subscription=readGroup("subscription");
