@@ -13,9 +13,9 @@ const js=readFileSync(join(root,'app.js'),'utf8');
 const tmp=mkdtempSync(join(tmpdir(),'ssulmo-dom-'));
 try {
   // Local inline JS avoids external GA4/network calls and verifies actual app.js behavior.
-  const original=html.replace(/<script async src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?[^"]+"><\/script>/,'')
+  const original=html.replace(/<script\b[^>]*src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?[^"]+"[^>]*><\/script>/,'')
     .replace(/<script src="app\.js" defer><\/script>/,'');
-  const tests=`<script>
+    const tests=`<script>
   window.addEventListener('load',()=>{
     const results=[];
     function check(name,condition){results.push({name,pass:!!condition});}
@@ -25,6 +25,8 @@ try {
     check('salary huge rejected',document.getElementById('salaryResult').textContent==='계산할 수 없습니다');
     check('salary bar cleared',document.getElementById('distribution').children.length===0);
     check('salary invalid aria',document.getElementById('pay').getAttribute('aria-invalid')==='true');
+    check('GA4 not queued before library load',window.dataLayer.filter(x=>x[0]==='event'&&x[1]==='calculator_used').length===0);
+    window.ga4LibraryLoaded=true; // deterministic local load signal; NOT server collection proof
     change('pay','2800000');
     check('salary restored',document.getElementById('salaryResult').textContent.includes('원'));
     check('salary bar restored',document.getElementById('distribution').children.length===4);
@@ -54,7 +56,7 @@ try {
   const match=r.stdout.match(/<pre id="qa-results">([^<]+)<\/pre>/);
   assert.ok(match,'Chromium did not return QA results; stderr: '+r.stderr.slice(0,500));
   const results=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
-  assert.equal(results.length,14,'Expected exactly 14 browser checks');
+  assert.equal(results.length,15,'Expected exactly 15 browser checks');
   for(const test of results)console.log((test.pass?'PASS':'FAIL')+' '+test.name);
   assert.ok(results.every(x=>x.pass),'Browser DOM regression failed');
 }finally{rmSync(tmp,{recursive:true,force:true});}
