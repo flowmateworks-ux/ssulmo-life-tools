@@ -33,8 +33,20 @@ function groupError(name,message){
     const raw=el.value.trim(),value=Number(raw);
     const invalid=Boolean(message)&&(raw===""||!Number.isSafeInteger(value)||value<0||(el.id==="duration"&&(value<1||value>1200)));
     el.setAttribute("aria-invalid",invalid?"true":"false");
-    if(invalid)el.setAttribute("aria-describedby",notice.id);
-    else if(el.getAttribute("aria-describedby")===notice.id)el.removeAttribute("aria-describedby");
+    // 각 입력칸에 구체적인 오류 설명을 연결합니다. 다른 입력칸의 오류와 혼동하지 않습니다.
+    const errorId=name+"-"+el.id+"-error";
+    let fieldNotice=card.querySelector('[id="'+errorId+'"]');
+    if(invalid){
+      if(!fieldNotice){fieldNotice=document.createElement("span");fieldNotice.id=errorId;fieldNotice.className="field-error";fieldNotice.style.cssText="display:block;color:#a32b2b;font-size:0.8rem;margin-top:4px";el.insertAdjacentElement("afterend",fieldNotice);}
+      fieldNotice.textContent=raw===""?"필수 입력값입니다.":el.id==="duration"?"1~1200개월의 정수를 입력해 주세요.":"0 이상의 안전한 정수 금액을 입력해 주세요.";
+      const described=(el.getAttribute("aria-describedby")||"").split(/\\s+/).filter(Boolean).filter(x=>x!==notice.id&&x!==errorId);
+      el.setAttribute("aria-describedby",[...described,errorId].join(" "));
+    }else{
+      fieldNotice?.remove();
+      const described=(el.getAttribute("aria-describedby")||"").split(/\\s+/).filter(x=>x&&x!==notice.id&&x!==errorId);
+      if(described.length)el.setAttribute("aria-describedby",described.join(" "));
+      else el.removeAttribute("aria-describedby");
+    }
   });
 }
 function update(){
