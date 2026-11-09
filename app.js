@@ -10,10 +10,10 @@ function readGroup(name){
   const values={};
   for(const id of groups[name]){
     const el=document.getElementById(id),raw=el?.value?.trim()??"";
-    if(raw==="")return {error:"빈칸 없이 금액을 입력해 주세요."};
+    if(raw==="")return {error:"빈칸 없이 금액을 입력해 주세요.",field:id};
     const value=Number(raw);
-    if(!Number.isSafeInteger(value)||value<0)return {error:"0 이상의 안전한 정수 금액을 입력해 주세요."};
-    if(id==="duration"&&(value<1||value>1200))return {error:"기간은 1~1200개월의 정수로 입력해 주세요."};
+    if(!Number.isSafeInteger(value)||value<0)return {error:"0 이상의 안전한 정수 금액을 입력해 주세요.",field:id};
+    if(id==="duration"&&(value<1||value>1200))return {error:"기간은 1~1200개월의 정수로 입력해 주세요.",field:id};
     values[id]=value;
   }
   return {values};
@@ -27,7 +27,7 @@ function groupError(name,message){
   let notice=card.querySelector(".calculator-error");
   if(!notice){notice=document.createElement("p");notice.className="calculator-error";notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");notice.style.color="#a32b2b";notice.style.fontWeight="600";card.querySelector(".fields")?.appendChild(notice);}
   notice.textContent=message||"";
-  card.querySelectorAll('input[type="number"]').forEach(el=>el.setAttribute("aria-invalid",message?"true":"false"));
+  card.querySelectorAll('input[type="number"]').forEach(el=>{const invalid=message&&readGroup(name).field===el.id;el.setAttribute("aria-invalid",invalid?"true":"false");});
 }
 function update(){
   const salary=readGroup("salary");
