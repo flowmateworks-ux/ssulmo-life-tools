@@ -122,7 +122,9 @@ Object.entries(calculatorGroups).forEach(([name,ids])=>{
   const flush=()=>{
     if(tracked||!pending)return;
     if(!valid()){pending=false;clearInterval(retryTimer);retryTimer=null;return;}
-    if(typeof window.gtag!=="function")return;
+    // The inline gtag stub only queues events; wait for the external library load signal.
+    // This is NOT proof that GA4 received or processed the event.
+    if(window.ga4LibraryLoaded!==true||typeof window.gtag!=="function")return;
     try{
       window.gtag("event","calculator_used",{calculator_type:name});
       tracked=true;pending=false;clearInterval(retryTimer);retryTimer=null;
