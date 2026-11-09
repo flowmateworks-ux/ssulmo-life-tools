@@ -1,0 +1,29 @@
+name: QA Chromium (non-deploy)
+on:
+  push:
+    branches:
+      - test/calculator-validation-20261105
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  chromium-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Chromium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser || sudo apt-get install -y chromium
+      - name: Run existing real-DOM QA
+        run: |
+          set -o pipefail
+          CHROMIUM="$(command -v chromium || command -v chromium-browser)" node qa/browser-smoke.mjs 2>&1 | tee chromium-qa.log
+      - name: Preserve raw QA output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chromium-qa-log
+          path: chromium-qa.log
+          if-no-files-found: warn
