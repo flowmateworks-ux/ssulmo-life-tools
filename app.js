@@ -39,11 +39,11 @@ function groupError(name,message){
     if(invalid){
       if(!fieldNotice){fieldNotice=document.createElement("span");fieldNotice.id=errorId;fieldNotice.className="field-error";fieldNotice.style.cssText="display:block;color:#a32b2b;font-size:0.8rem;margin-top:4px";el.insertAdjacentElement("afterend",fieldNotice);}
       fieldNotice.textContent=raw===""?"필수 입력값입니다.":el.id==="duration"?"1~1200개월의 정수를 입력해 주세요.":"0 이상의 안전한 정수 금액을 입력해 주세요.";
-      const described=(el.getAttribute("aria-describedby")||"").split(/\\s+/).filter(Boolean).filter(x=>x!==notice.id&&x!==errorId);
+      const described=(el.getAttribute("aria-describedby")||"").split(/\s+/).filter(Boolean).filter(x=>x!==notice.id&&x!==errorId);
       el.setAttribute("aria-describedby",[...described,errorId].join(" "));
     }else{
       fieldNotice?.remove();
-      const described=(el.getAttribute("aria-describedby")||"").split(/\\s+/).filter(x=>x&&x!==notice.id&&x!==errorId);
+      const described=(el.getAttribute("aria-describedby")||"").split(/\s+/).filter(x=>x&&x!==notice.id&&x!==errorId);
       if(described.length)el.setAttribute("aria-describedby",described.join(" "));
       else el.removeAttribute("aria-describedby");
     }
