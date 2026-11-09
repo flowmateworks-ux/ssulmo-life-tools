@@ -12,14 +12,22 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: Install Chromium
+      - name: Select non-Snap Chrome/Chromium
         run: |
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser || sudo apt-get install -y chromium
+          set -euo pipefail
+          for candidate in /usr/bin/google-chrome /usr/bin/google-chrome-stable /opt/google/chrome/chrome /usr/bin/chromium; do
+            if [ -x "$candidate" ] && ! readlink -f "$candidate" | grep -q '/snap/'; then
+              echo "CHROMIUM=$candidate" >> "$GITHUB_ENV"
+              "$candidate" --version
+              exit 0
+            fi
+          done
+          echo 'No non-Snap Chrome binary available on runner' >&2
+          exit 1
       - name: Run existing real-DOM QA
         run: |
           set -o pipefail
-          CHROMIUM="$(command -v chromium || command -v chromium-browser)" node qa/browser-smoke.mjs 2>&1 | tee chromium-qa.log
+          node qa/browser-smoke.mjs 2>&1 | tee chromium-qa.log
       - name: Preserve raw QA output
         if: always()
         uses: actions/upload-artifact@v4
