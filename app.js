@@ -25,13 +25,16 @@ function groupError(name,message){
   // 이전 초과 배분 상태가 입력 오류 화면에 남지 않도록 초기화합니다.
   if(name==="salary"&&message)card.querySelector(".output")?.classList.remove("is-negative");
   let notice=card.querySelector(".calculator-error");
-  if(!notice){notice=document.createElement("p");notice.className="calculator-error";notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");notice.style.color="#a32b2b";notice.style.fontWeight="600";card.querySelector(".fields")?.appendChild(notice);}
+  if(!notice){notice=document.createElement("p");notice.className="calculator-error";notice.id=name+"-error";notice.setAttribute("role","status");notice.setAttribute("aria-live","polite");notice.style.color="#a32b2b";notice.style.fontWeight="600";card.querySelector(".fields")?.appendChild(notice);}
+  if(!notice.id)notice.id=name+"-error";
   notice.textContent=message||"";
   // 각 필드를 독립 검증해 여러 입력 오류도 모두 표시합니다.
   card.querySelectorAll('input[type="number"]').forEach(el=>{
     const raw=el.value.trim(),value=Number(raw);
     const invalid=Boolean(message)&&(raw===""||!Number.isSafeInteger(value)||value<0||(el.id==="duration"&&(value<1||value>1200)));
     el.setAttribute("aria-invalid",invalid?"true":"false");
+    if(invalid)el.setAttribute("aria-describedby",notice.id);
+    else if(el.getAttribute("aria-describedby")===notice.id)el.removeAttribute("aria-describedby");
   });
 }
 function update(){
