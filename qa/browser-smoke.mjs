@@ -91,7 +91,7 @@ try {
   const mobilePath=join(tmp,'mobile.html');writeFileSync(mobilePath,mobileHtml);
   const mobile=spawnSync(binary,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--window-size=500,844','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(mobilePath).href],{encoding:'utf8',timeout:20000});
   if(mobile.error)throw mobile.error;
-  const mobileMatch=mobile.stdout.match(/<pre id="mobile-qa-results">([^<]+)<\\/pre>/);
+  const mobileMatch=mobile.stdout.match(new RegExp('<pre id="mobile-qa-results">([^<]+)</pre>'));
   if(!mobileMatch)console.error('MOBILE_DIAGNOSTICS '+JSON.stringify({status:mobile.status,stderrTail:mobile.stderr.slice(-2000),stdoutTail:mobile.stdout.slice(-2000)}));
   assert.ok(mobileMatch,'Narrow viewport QA did not return results');
   const mobileResult=JSON.parse(mobileMatch[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
