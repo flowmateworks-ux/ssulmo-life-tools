@@ -54,7 +54,10 @@ try {
   const r=spawnSync(binary,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--virtual-time-budget=2000','--dump-dom',pathToFileURL(path).href],{encoding:'utf8',timeout:20000});
   if(r.error)throw r.error;
   const match=r.stdout.match(/<pre id="qa-results">([^<]+)<\/pre>/);
-  assert.ok(match,'Chromium did not return QA results; stderr: '+r.stderr.slice(0,500));
+  if (!match) {
+    console.error('CHROMIUM_DIAGNOSTICS '+JSON.stringify({binary,args:['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--virtual-time-budget=2000','--dump-dom'],status:r.status,signal:r.signal,stderrTail:r.stderr.slice(-4000),stdoutTail:r.stdout.slice(-4000),stdoutLength:r.stdout.length}));
+  }
+  assert.ok(match,'Chromium did not return QA results; inspect CHROMIUM_DIAGNOSTICS above');
   const results=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
   assert.equal(results.length,15,'Expected exactly 15 browser checks');
   for(const test of results)console.log((test.pass?'PASS':'FAIL')+' '+test.name);
