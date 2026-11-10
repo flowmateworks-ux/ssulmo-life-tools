@@ -43,6 +43,18 @@ try {
     change('cut','9007199254740991');
     check('subscription multiplication overflow rejected',document.getElementById('cutResult').textContent==='계산할 수 없습니다');
     check('savings unaffected',document.getElementById('saveResult').textContent==='18개월');
+    // Additional real-DOM acceptance: boundary and recovery across all four calculators.
+    change('pay','0');
+    change('living','0');change('saving','0');change('invest','0');change('extra','0');
+    check('salary zero denominator explained',document.getElementById('salaryDetails').textContent.includes('비율 산출 불가'));
+    change('monthly','0');
+    check('savings zero deposit explained',document.getElementById('saveResult').textContent.includes('달성 시점을 계산할 수 없습니다'));
+    change('monthly','500000');
+    check('savings zero deposit recovery',document.getElementById('saveResult').textContent==='18개월');
+    change('cut','15000');change('duration','0');
+    check('subscription invalid duration rejected',document.getElementById('cutResult').textContent==='계산할 수 없습니다'&&document.getElementById('duration').getAttribute('aria-invalid')==='true');
+    change('duration','12');
+    check('subscription duration recovery',document.getElementById('cutResult').textContent==='180,000원'&&document.getElementById('duration').getAttribute('aria-invalid')==='false');
     const salaryEvents=window.dataLayer.filter(x=>x[0]==='event'&&x[1]==='calculator_used'&&x[2]?.calculator_type==='salary');
     check('salary event exactly once (queued, not GA4 delivery)',salaryEvents.length===1 && salaryEvents.every(x=>Object.keys(x[2]||{}).join(',')==='calculator_type'));
     const out=document.createElement('pre');out.id='qa-results';out.textContent=JSON.stringify(results);document.body.append(out);
@@ -59,7 +71,7 @@ try {
   }
   assert.ok(match,'Chromium did not return QA results; inspect CHROMIUM_DIAGNOSTICS above');
   const results=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
-  assert.equal(results.length,15,'Expected exactly 15 browser checks');
+  assert.equal(results.length,20,'Expected exactly 20 browser checks');
   for(const test of results)console.log((test.pass?'PASS':'FAIL')+' '+test.name);
   assert.ok(results.every(x=>x.pass),'Browser DOM regression failed');
 
