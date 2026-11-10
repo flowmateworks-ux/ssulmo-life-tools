@@ -62,4 +62,41 @@ try {
   assert.equal(results.length,15,'Expected exactly 15 browser checks');
   for(const test of results)console.log((test.pass?'PASS':'FAIL')+' '+test.name);
   assert.ok(results.every(x=>x.pass),'Browser DOM regression failed');
+
+  // Independent narrow-viewport DOM and keyboard/accessibility checks.
+  // Inline the real stylesheet: the temporary HTML is outside the repository.
+  const css=readFileSync(join(root,'style.css'),'utf8');
+  const mobileChecks=`<script>
+  window.addEventListener('load',()=>{
+    const checks=[];
+    const check=(name,pass)=>checks.push({name,pass:!!pass});
+    const width=window.innerWidth;
+    check('narrow viewport applied',width>=480&&width<=520);
+    check('no horizontal page overflow',document.documentElement.scrollWidth<=width+1);
+    const inputs=[...document.querySelectorAll('.tool-card input')];
+    check('all calculator inputs have explicit labels',inputs.length>=10&&inputs.every(el=>!!document.querySelector('label[for="'+el.id+'"]')));
+    const skip=document.querySelector('a.skip-link');
+    skip.focus();
+    check('skip link keyboard focusable',document.activeElement===skip&&document.querySelector(skip.getAttribute('href'))!==null);
+    const links=[...document.querySelectorAll('a[href^="#"]')];
+    check('all in-page navigation targets exist',links.every(a=>a.getAttribute('href').length>1&&document.getElementById(a.getAttribute('href').slice(1))));
+    const pay=document.getElementById('pay');pay.focus();pay.value='2700000';
+    pay.dispatchEvent(new Event('input',{bubbles:true}));
+    check('keyboard-focusable calculator recalculates',document.activeElement===pay&&document.getElementById('salaryResult').textContent.includes('원'));
+    const pre=document.createElement('pre');pre.id='mobile-qa-results';pre.textContent=JSON.stringify({width,checks});document.body.append(pre);
+  });
+  <\/script>`;
+  const mobileHtml=original.replace('<link rel="stylesheet" href="style.css">','<style>'+css+'</style>')
+    .replace('</body>',`<script>${js.replaceAll('</script>','<\\/script>')}</script>${mobileChecks}</body>`);
+  const mobilePath=join(tmp,'mobile.html');writeFileSync(mobilePath,mobileHtml);
+  const mobile=spawnSync(binary,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--window-size=500,844','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(mobilePath).href],{encoding:'utf8',timeout:20000});
+  if(mobile.error)throw mobile.error;
+  const mobileMatch=mobile.stdout.match(/<pre id="mobile-qa-results">([^<]+)<\\/pre>/);
+  if(!mobileMatch)console.error('MOBILE_DIAGNOSTICS '+JSON.stringify({status:mobile.status,stderrTail:mobile.stderr.slice(-2000),stdoutTail:mobile.stdout.slice(-2000)}));
+  assert.ok(mobileMatch,'Narrow viewport QA did not return results');
+  const mobileResult=JSON.parse(mobileMatch[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
+  for(const test of mobileResult.checks)console.log((test.pass?'PASS':'FAIL')+' mobile '+test.name);
+  assert.equal(mobileResult.checks.length,6,'Expected 6 narrow viewport checks');
+  assert.ok(mobileResult.checks.every(x=>x.pass),'Narrow viewport/keyboard QA failed');
+
 }finally{rmSync(tmp,{recursive:true,force:true});}
