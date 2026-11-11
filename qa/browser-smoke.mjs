@@ -112,3 +112,49 @@ try {
   assert.ok(mobileResult.checks.every(x=>x.pass),'Narrow viewport/keyboard QA failed');
 
 }finally{rmSync(tmp,{recursive:true,force:true});}
+
+
+// Product survey canonical event dedup: REAL product.html in headless Chromium.
+// These are dataLayer queue assertions only, NOT GA4 server-collection evidence.
+const surveyTmp=mkdtempSync(join(tmpdir(),'ssulmo-survey-'));
+try{
+  const productHtml=readFileSync(join(root,'product.html'),'utf8');
+  const surveyCss=readFileSync(join(root,'style.css'),'utf8');
+  const surveyChecks=[
+    '<script>',
+    "window.addEventListener('load',()=>{",
+    "const results=[];const check=(name,ok)=>results.push({name,pass:!!ok});",
+    "const buttons=[...document.querySelectorAll('#price-options button[data-price]')];",
+    "const events=()=>window.dataLayer.filter(x=>x[0]==='event');",
+    "const canonical=()=>events().filter(x=>x[1]==='product_price_interest');",
+    "check('survey four options present',buttons.length===4);",
+    "check('survey initial aria-pressed false',buttons.every(b=>b.getAttribute('aria-pressed')==='false'));",
+    "buttons[0].click();check('survey first choice one canonical event',canonical().length===1);",
+    "buttons[0].click();check('survey duplicate click not re-counted',canonical().length===1);",
+    "buttons[1].click();check('survey changed choice emits second event',canonical().length===2);",
+    "check('survey no redundant interest_* events',events().every(x=>x[1]==='product_price_interest'));",
+    "check('survey payload only two selected prices',JSON.stringify(canonical().map(x=>x[2].price_preference))===JSON.stringify(['3900','7900']));",
+    "check('survey exactly one aria-pressed option',buttons.filter(b=>b.getAttribute('aria-pressed')==='true').length===1&&buttons[1].getAttribute('aria-pressed')==='true');",
+    "check('survey response not mistaken for order',document.getElementById('survey-result').textContent.includes('주문이나 예약이 접수된 것은 아닙니다'));",
+    "check('survey 500px no horizontal overflow',document.documentElement.scrollWidth<=window.innerWidth+1);",
+    "const pre=document.createElement('pre');pre.id='survey-qa-results';pre.textContent=JSON.stringify(results);document.body.append(pre);",
+    "});",
+    '</script>'
+  ].join('\n');
+  const surveyPage=productHtml
+    .replace(/<script\b[^>]*src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?[^"]+"[^>]*><\/script>/,'')
+    .replace('<link rel="stylesheet" href="style.css">','<style>'+surveyCss+'</style>')
+    .replace('</body>',surveyChecks+'</body>');
+  const surveyPath=join(surveyTmp,'survey.html');
+  writeFileSync(surveyPath,surveyPage);
+  const browser=process.env.CHROMIUM||'chromium';
+  const run=spawnSync(browser,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--window-size=500,844','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(surveyPath).href],{encoding:'utf8',timeout:20000});
+  if(run.error)throw run.error;
+  const match=run.stdout.match(/<pre id="survey-qa-results">([^<]+)<\/pre>/);
+  if(!match)console.error('SURVEY_DIAGNOSTICS '+JSON.stringify({status:run.status,stderrTail:run.stderr.slice(-2000),stdoutTail:run.stdout.slice(-2000)}));
+  assert.ok(match,'Product survey Chromium did not return DOM QA results');
+  const results=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
+  for(const test of results)console.log((test.pass?'PASS':'FAIL')+' survey '+test.name);
+  assert.equal(results.length,10,'Expected exactly 10 product survey checks');
+  assert.ok(results.every(x=>x.pass),'Product survey real-DOM regression failed');
+}finally{rmSync(surveyTmp,{recursive:true,force:true});}
