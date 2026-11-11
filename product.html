@@ -8,10 +8,19 @@
 (function(){
 const options=document.querySelectorAll('[data-price]');
 const result=document.getElementById('survey-result');
-options.forEach(button=>button.addEventListener('click',function(){
-  if(window.gtag){window.gtag('event','product_price_interest',{product_name:'budget_sheet_v01',price_preference:this.dataset.price});window.gtag('event','interest_'+this.dataset.price,{product_name:'budget_sheet_v01'});}
-  options.forEach(b=>{b.style.background=b===this?'#dcefe2':'#f3f8f4';b.style.borderColor=b===this?'#267568':'#b6d2c0';b.setAttribute('aria-pressed',String(b===this))});
-  result.textContent='응답해 주셔서 감사합니다. 실제 주문이나 예약이 접수된 것은 아닙니다.';
-}));
+let selectedPrice=null;
+options.forEach(button=>{
+  button.setAttribute('aria-pressed','false');
+  button.addEventListener('click',function(){
+    const price=this.dataset.price;
+    // One canonical event per actual choice change, not per repeated click.
+    if(selectedPrice===price)return;
+    selectedPrice=price;
+    // This queues an event; GA4 server receipt must be verified separately.
+    if(typeof window.gtag==='function')window.gtag('event','product_price_interest',{product_name:'budget_sheet_v01',price_preference:price});
+    options.forEach(b=>{b.style.background=b===this?'#dcefe2':'#f3f8f4';b.style.borderColor=b===this?'#267568':'#b6d2c0';b.setAttribute('aria-pressed',String(b===this))});
+    result.textContent='응답해 주셔서 감사합니다. 실제 주문이나 예약이 접수된 것은 아닙니다.';
+  });
+});
 })();
 </script></body></html>
