@@ -57,12 +57,20 @@ try {
     check('subscription invalid duration rejected',document.getElementById('cutResult').textContent==='계산할 수 없습니다'&&document.getElementById('duration').getAttribute('aria-invalid')==='true');
     change('duration','12');
     check('subscription duration recovery',document.getElementById('cutResult').textContent==='180,000원'&&document.getElementById('duration').getAttribute('aria-invalid')==='false');
+    change('duration','0'); // invalidate a pending event while GA4 is unavailable
+    check('subscription invalidation clears result',document.getElementById('cutResult').textContent==='계산할 수 없습니다');
     const salaryEvents=window.dataLayer.filter(x=>x[0]==='event'&&x[1]==='calculator_used'&&x[2]?.calculator_type==='salary');
     check('salary event exactly once (queued, not GA4 delivery)',salaryEvents.length===1 && salaryEvents.every(x=>Object.keys(x[2]||{}).join(',')==='calculator_type'));
     window.ga4LibraryLoaded=true;
     setTimeout(()=>{
       const fixedEvents=window.dataLayer.filter(x=>x[0]==='event'&&x[1]==='calculator_used'&&x[2]?.calculator_type==='fixed');
       check('fixed delayed retry queues exactly once (not GA4 delivery)',fixedEvents.length===1&&Object.keys(fixedEvents[0][2]||{}).join(',')==='calculator_type');
+      const subscriptionEvents=()=>window.dataLayer.filter(x=>x[0]==='event'&&x[1]==='calculator_used'&&x[2]?.calculator_type==='subscription');
+      check('invalidated delayed subscription not queued',subscriptionEvents().length===0);
+      change('duration','12');
+      check('subscription recovery queues exactly once',subscriptionEvents().length===1);
+      change('duration','12');
+      check('subscription repeated input not re-counted',subscriptionEvents().length===1);
       const out=document.createElement('pre');out.id='qa-results';out.textContent=JSON.stringify(results);document.body.append(out);
     },700);
   });
@@ -78,7 +86,7 @@ try {
   }
   assert.ok(match,'Chromium did not return QA results; inspect CHROMIUM_DIAGNOSTICS above');
   const results=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
-  assert.equal(results.length,22,'Expected exactly 22 browser checks');
+  assert.equal(results.length,26,'Expected exactly 26 browser checks');
   for(const test of results)console.log((test.pass?'PASS':'FAIL')+' '+test.name);
   assert.ok(results.every(x=>x.pass),'Browser DOM regression failed');
 
