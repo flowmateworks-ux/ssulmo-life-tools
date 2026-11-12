@@ -36,10 +36,12 @@ try {
     check('salary invalid clears overspend style',!document.querySelector('#salary .output').classList.contains('is-negative'));
     change('living','1200000');
     check('salary valid clears invalid state',document.getElementById('living').getAttribute('aria-invalid')==='false');
+    window.ga4LibraryLoaded=false; // exercise real 500ms retry path independently of salary
     change('rent','');
     check('fixed blank rejected',document.getElementById('costResult').textContent==='계산할 수 없습니다');
     change('rent','0');
     check('fixed zero restored',document.getElementById('costResult').textContent.includes('원'));
+    check('fixed event withheld while GA4 library unavailable',window.dataLayer.filter(x=>x[0]==='event'&&x[1]==='calculator_used'&&x[2]?.calculator_type==='fixed').length===0);
     change('cut','9007199254740991');
     check('subscription multiplication overflow rejected',document.getElementById('cutResult').textContent==='계산할 수 없습니다');
     check('savings unaffected',document.getElementById('saveResult').textContent==='18개월');
@@ -57,7 +59,12 @@ try {
     check('subscription duration recovery',document.getElementById('cutResult').textContent==='180,000원'&&document.getElementById('duration').getAttribute('aria-invalid')==='false');
     const salaryEvents=window.dataLayer.filter(x=>x[0]==='event'&&x[1]==='calculator_used'&&x[2]?.calculator_type==='salary');
     check('salary event exactly once (queued, not GA4 delivery)',salaryEvents.length===1 && salaryEvents.every(x=>Object.keys(x[2]||{}).join(',')==='calculator_type'));
-    const out=document.createElement('pre');out.id='qa-results';out.textContent=JSON.stringify(results);document.body.append(out);
+    window.ga4LibraryLoaded=true;
+    setTimeout(()=>{
+      const fixedEvents=window.dataLayer.filter(x=>x[0]==='event'&&x[1]==='calculator_used'&&x[2]?.calculator_type==='fixed');
+      check('fixed delayed retry queues exactly once (not GA4 delivery)',fixedEvents.length===1&&Object.keys(fixedEvents[0][2]||{}).join(',')==='calculator_type');
+      const out=document.createElement('pre');out.id='qa-results';out.textContent=JSON.stringify(results);document.body.append(out);
+    },700);
   });
   </script>`;
   const page=original.replace('</body>',`<script>${js.replaceAll('</script>','<\\/script>')}</script>${tests}</body>`);
@@ -71,7 +78,7 @@ try {
   }
   assert.ok(match,'Chromium did not return QA results; inspect CHROMIUM_DIAGNOSTICS above');
   const results=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
-  assert.equal(results.length,20,'Expected exactly 20 browser checks');
+  assert.equal(results.length,22,'Expected exactly 22 browser checks');
   for(const test of results)console.log((test.pass?'PASS':'FAIL')+' '+test.name);
   assert.ok(results.every(x=>x.pass),'Browser DOM regression failed');
 
