@@ -250,6 +250,13 @@ try{
     $('reset').click();
     check('reset clears investment subtotal',$('investments').textContent==='투자 0원');
     check('reset clears investment test row',count()===6);
+    $('add').click();
+    $('txMemo').value='가'.repeat(40);
+    $('txAmount').value='5000';
+    $('txForm').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+    check('long unbroken memo saved',count()===7&&$('recentRows').textContent.includes('가'.repeat(40)));
+    check('long unbroken memo does not overflow page',document.documentElement.scrollWidth<=window.innerWidth+1);
+    $('reset').click();
     const pre=document.createElement('pre');pre.id='poc-qa-results';pre.textContent=JSON.stringify({width:window.innerWidth,results});document.body.append(pre);
   }
   const pocSource=readFileSync(join(root,'qa/poc/ssulmo-responsive-poc-20261112.html'),'utf8');
@@ -267,12 +274,12 @@ try{
       if(!match)console.error('POC_CHROMIUM_DIAGNOSTICS '+JSON.stringify({width,status:run.status,stderrTail:run.stderr.slice(-1500),stdoutTail:run.stdout.slice(-1500)}));
       assert.ok(match,'PoC Chromium did not return DOM results');
       const data=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
-      assert.equal(data.results.length,30,'Expected 30 PoC checks per viewport');
+      assert.equal(data.results.length,32,'Expected 32 PoC checks per viewport');
       for(const t of data.results)console.log((t.pass?'PASS':'FAIL')+' poc '+width+'px '+t.name);
       count+=data.results.length;
       assert.ok(data.results.every(t=>t.pass),'PoC browser regression failed at '+width+'px');
     }
-    assert.equal(count,90,'Expected 90 PoC checks across 320/500/1440px');
+    assert.equal(count,96,'Expected 96 PoC checks across 320/500/1440px');
     console.log('POC_QA_SUMMARY PASS '+count+' FAIL 0');
   }finally{rmSync(pocTmp,{recursive:true,force:true});}
 }
