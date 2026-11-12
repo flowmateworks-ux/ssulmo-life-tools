@@ -188,6 +188,19 @@ try{
     check('reset button visible',visible($('reset')));
     check('no horizontal overflow',document.documentElement.scrollWidth<=window.innerWidth+1);
     check('initial six sample rows',count()===6);
+    // Cross-month and markup safety: real DOM submission, not a static code assertion.
+    $('add').click();
+    $('txDate').value='2026-10-15';
+    $('txAmount').value='777';
+    $('txMemo').value='<img src=x onerror=alert(1)>';
+    $('txForm').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+    check('other-month transaction appears in all rows',count()===7);
+    check('other-month expense excluded from November',$('expense').textContent==='86,900원');
+    check('other-month budget remains unchanged',$('remain').textContent==='713,100원');
+    check('markup memo is displayed literally',$('allRows').textContent.includes('<img src=x onerror=alert(1)>'));
+    check('markup memo cannot inject image elements',!$('allRows').querySelector('img')&&!$('recentRows').querySelector('img'));
+    $('reset').click();
+    check('cross-month safety test resets cleanly',count()===6);
     $('add').click();
     $('txAmount').value='1234';
     $('txMemo').value='    ';
@@ -236,12 +249,12 @@ try{
       if(!match)console.error('POC_CHROMIUM_DIAGNOSTICS '+JSON.stringify({width,status:run.status,stderrTail:run.stderr.slice(-1500),stdoutTail:run.stdout.slice(-1500)}));
       assert.ok(match,'PoC Chromium did not return DOM results');
       const data=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
-      assert.equal(data.results.length,21,'Expected 21 PoC checks per viewport');
+      assert.equal(data.results.length,27,'Expected 27 PoC checks per viewport');
       for(const t of data.results)console.log((t.pass?'PASS':'FAIL')+' poc '+width+'px '+t.name);
       count+=data.results.length;
       assert.ok(data.results.every(t=>t.pass),'PoC browser regression failed at '+width+'px');
     }
-    assert.equal(count,63,'Expected 63 PoC checks across 320/500/1440px');
+    assert.equal(count,81,'Expected 81 PoC checks across 320/500/1440px');
     console.log('POC_QA_SUMMARY PASS '+count+' FAIL 0');
   }finally{rmSync(pocTmp,{recursive:true,force:true});}
 }
