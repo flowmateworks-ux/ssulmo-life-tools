@@ -173,3 +173,62 @@ try{
   assert.equal(results.length,10,'Expected exactly 10 product survey checks');
   assert.ok(results.every(x=>x.pass),'Product survey real-DOM regression failed');
 }finally{rmSync(surveyTmp,{recursive:true,force:true});}
+
+
+// Isolated fake-data PoC: independent real-Chromium regression (non-deploy).
+// Distinct from the 42 production-calculator checks and from Google Sheets QA.
+{
+  function pocRunner(){
+    const results=[];
+    const check=(name,ok)=>results.push({name,pass:!!ok});
+    const $=id=>document.getElementById(id);
+    const count=()=>document.querySelectorAll('#allRows tr').length;
+    const visible=el=>{const r=el.getBoundingClientRect();return getComputedStyle(el).display!=='none'&&r.width>0&&r.height>0;};
+    check('responsive device label',window.innerWidth>=480&&$('deviceLabel').textContent.includes(window.innerWidth<=720?'모바일':'PC'));
+    check('reset button visible',visible($('reset')));
+    check('no horizontal overflow',document.documentElement.scrollWidth<=window.innerWidth+1);
+    check('initial six sample rows',count()===6);
+    $('add').click();
+    $('txAmount').value='1234';
+    $('txMemo').value='    ';
+    $('txForm').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+    check('whitespace-only memo rejected',count()===6);
+    check('invalid memo explained',!!$('txMemo').validationMessage);
+    $('txMemo').value='  QA memo  ';
+    $('txMemo').dispatchEvent(new Event('input',{bubbles:true}));
+    check('editing clears custom validation',$('txMemo').validationMessage==='');
+    $('txForm').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+    check('valid transaction saved',count()===7);
+    check('memo trimmed', $('allRows').textContent.includes('QA memo')&&!$('allRows').textContent.includes('  QA memo  '));
+    check('modal closes after save',!$('modalBackdrop').classList.contains('open'));
+    $('add').focus();$('add').click();
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+    check('Escape restores opener focus',document.activeElement===$('add')&&!$('modalBackdrop').classList.contains('open'));
+    $('reset').click();
+    check('reset restores six rows',count()===6);
+    check('reset restores monthly expense',$('expense').textContent==='86,900원');
+    const pre=document.createElement('pre');pre.id='poc-qa-results';pre.textContent=JSON.stringify({width:window.innerWidth,results});document.body.append(pre);
+  }
+  const pocSource=readFileSync(join(root,'qa/poc/ssulmo-responsive-poc-20261112.html'),'utf8');
+  const pocTmp=mkdtempSync(join(tmpdir(),'ssulmo-poc-'));
+  try{
+    const pocPath=join(pocTmp,'poc.html');
+    writeFileSync(pocPath,pocSource.replace('</body>','<script>('+pocRunner.toString()+')();</script></body>'));
+    let count=0;
+    for(const width of [500,1440]){
+      const browser=process.env.CHROMIUM||'chromium';
+      const args=['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--window-size='+width+',900','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(pocPath).href];
+      const run=spawnSync(browser,args,{encoding:'utf8',timeout:20000});
+      if(run.error)throw run.error;
+      const match=run.stdout.match(/<pre id="poc-qa-results">([^<]+)<\/pre>/);
+      if(!match)console.error('POC_CHROMIUM_DIAGNOSTICS '+JSON.stringify({width,status:run.status,stderrTail:run.stderr.slice(-1500),stdoutTail:run.stdout.slice(-1500)}));
+      assert.ok(match,'PoC Chromium did not return DOM results');
+      const data=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
+      assert.equal(data.results.length,13,'Expected 13 PoC checks per viewport');
+      for(const t of data.results)console.log((t.pass?'PASS':'FAIL')+' poc '+width+'px '+t.name);
+      count+=data.results.length;
+      assert.ok(data.results.every(t=>t.pass),'PoC browser regression failed at '+width+'px');
+    }
+    console.log('POC_QA_SUMMARY PASS '+count+' FAIL 0');
+  }finally{rmSync(pocTmp,{recursive:true,force:true});}
+}
