@@ -274,6 +274,7 @@ try{
       if(!match)console.error('POC_CHROMIUM_DIAGNOSTICS '+JSON.stringify({width,status:run.status,stderrTail:run.stderr.slice(-1500),stdoutTail:run.stdout.slice(-1500)}));
       assert.ok(match,'PoC Chromium did not return DOM results');
       const data=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
+      console.log('POC_VIEWPORT requested='+width+' actual='+data.width);
       assert.equal(data.results.length,32,'Expected 32 PoC checks per viewport');
       for(const t of data.results)console.log((t.pass?'PASS':'FAIL')+' poc '+width+'px '+t.name);
       count+=data.results.length;
