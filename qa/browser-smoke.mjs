@@ -187,6 +187,24 @@ try{
     check('responsive device label',window.innerWidth>=320&&$('deviceLabel').textContent.includes(window.innerWidth<=720?'모바일':'PC'));
     check('reset button visible',visible($('reset')));
     check('no horizontal overflow',document.documentElement.scrollWidth<=window.innerWidth+1);
+
+    // Accessibility QA: computed CSS colors in the actual Chromium DOM.
+    // WCAG AA normal-sized text contrast threshold is 4.5:1.
+    const luminance=color=>{
+      const rgb=color.match(/[\d.]+/g)?.slice(0,3).map(Number);
+      if(!rgb||rgb.length!==3)return NaN;
+      const linear=rgb.map(v=>{v/=255;return v<=0.04045?v/12.92:((v+0.055)/1.055)**2.4;});
+      return linear[0]*0.2126+linear[1]*0.7152+linear[2]*0.0722;
+    };
+    const contrast=(a,b)=>{const x=luminance(a),y=luminance(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);};
+    const cssColor=sel=>getComputedStyle(document.querySelector(sel)).color;
+    const cssBg=sel=>getComputedStyle(document.querySelector(sel)).backgroundColor;
+    const white='rgb(255, 255, 255)';
+    const normalText=['.card:not(.highlight) .small','.card:not(.highlight) .hint','.panel .meta','.transaction .detail','th','.budget-values'];
+    check('small secondary labels meet 4.5:1 contrast',normalText.every(sel=>contrast(cssColor(sel),white)>=4.5)&&contrast(cssColor('.demo'),cssBg('html'))>=4.5&&contrast(cssColor('.side-note'),cssBg('.side-note'))>=4.5);
+    check('highlight and device labels meet 4.5:1 contrast',contrast(cssColor('.card.highlight .hint'),cssBg('.card.highlight'))>=4.5&&contrast(cssColor('.device'),cssBg('.device'))>=4.5);
+    check('inactive mobile navigation meets 4.5:1 contrast',window.innerWidth>720||contrast(cssColor('.bottom-nav button:not(.active)'),cssBg('.bottom-nav'))>=4.5);
+
     check('initial six sample rows',count()===6);
     // Cross-month and markup safety: real DOM submission, not a static code assertion.
     $('add').click();
@@ -249,12 +267,12 @@ try{
       if(!match)console.error('POC_CHROMIUM_DIAGNOSTICS '+JSON.stringify({width,status:run.status,stderrTail:run.stderr.slice(-1500),stdoutTail:run.stdout.slice(-1500)}));
       assert.ok(match,'PoC Chromium did not return DOM results');
       const data=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
-      assert.equal(data.results.length,27,'Expected 27 PoC checks per viewport');
+      assert.equal(data.results.length,30,'Expected 30 PoC checks per viewport');
       for(const t of data.results)console.log((t.pass?'PASS':'FAIL')+' poc '+width+'px '+t.name);
       count+=data.results.length;
       assert.ok(data.results.every(t=>t.pass),'PoC browser regression failed at '+width+'px');
     }
-    assert.equal(count,81,'Expected 81 PoC checks across 320/500/1440px');
+    assert.equal(count,90,'Expected 90 PoC checks across 320/500/1440px');
     console.log('POC_QA_SUMMARY PASS '+count+' FAIL 0');
   }finally{rmSync(pocTmp,{recursive:true,force:true});}
 }
