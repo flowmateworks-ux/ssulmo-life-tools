@@ -187,6 +187,14 @@ try{
     check('responsive device label',window.innerWidth>=320&&$('deviceLabel').textContent.includes(window.innerWidth<=720?'모바일':'PC'));
     check('reset button visible',visible($('reset')));
     check('no horizontal overflow',document.documentElement.scrollWidth<=window.innerWidth+1);
+    if(window.innerHeight<600){
+      $('add').click();
+      const dialog=document.querySelector('.modal');
+      const rect=dialog.getBoundingClientRect();
+      check('short mobile viewport keeps dialog on screen',rect.top>=-1&&rect.bottom<=window.innerHeight+1);
+      check('short mobile viewport can scroll dialog actions',dialog.scrollHeight>dialog.clientHeight&&getComputedStyle(dialog).overflowY==='auto');
+      $('cancel').click();
+    }
 
     // Accessibility QA: computed CSS colors in the actual Chromium DOM.
     // WCAG AA normal-sized text contrast threshold is 4.5:1.
@@ -292,7 +300,7 @@ try{
         const id=++seq;pending.set(id,{resolve,reject});
         ws.send(JSON.stringify({id,method,params}));
       });
-      await send('Emulation.setDeviceMetricsOverride',{width:320,height:900,deviceScaleFactor:1,mobile:true});
+      await send('Emulation.setDeviceMetricsOverride',{width:320,height:480,deviceScaleFactor:1,mobile:true});
       await send('Page.navigate',{url:pathToFileURL(pocPath).href});
       for(let i=0;i<100;i++){
         const response=await send('Runtime.evaluate',{expression:"({width:window.innerWidth,raw:document.getElementById('poc-qa-results')?.textContent||''})",returnByValue:true});
@@ -329,12 +337,12 @@ try{
       }
       console.log('POC_VIEWPORT requested='+width+' actual='+data.width);
       assert.equal(data.width,width,'Actual Chromium CSS viewport must match the claimed QA width');
-      assert.equal(data.results.length,32,'Expected 32 PoC checks per viewport');
+      assert.equal(data.results.length,width===320?34:32,'Expected PoC checks for this viewport');
       for(const t of data.results)console.log((t.pass?'PASS':'FAIL')+' poc '+width+'px '+t.name);
       count+=data.results.length;
       assert.ok(data.results.every(t=>t.pass),'PoC browser regression failed at '+width+'px');
     }
-    assert.equal(count,96,'Expected 96 PoC checks across 320/500/1440px');
+    assert.equal(count,98,'Expected 98 PoC checks across 320/500/1440px');
     console.log('POC_QA_SUMMARY PASS '+count+' FAIL 0');
   }finally{rmSync(pocTmp,{recursive:true,force:true});}
 }
