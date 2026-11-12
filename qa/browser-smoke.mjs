@@ -207,6 +207,18 @@ try{
     $('reset').click();
     check('reset restores six rows',count()===6);
     check('reset restores monthly expense',$('expense').textContent==='86,900원');
+    check('investment option mirrors Sheets type',$('txType').querySelector('option[value="투자"]')!==null);
+    $('add').click();
+    $('txType').value='투자';$('txAmount').value='1200';$('txMemo').value='QA-invest';
+    $('txForm').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+    check('investment transaction added',count()===7&&$('allRows').textContent.includes('QA-invest'));
+    check('investment monthly subtotal',$('investments').textContent==='투자 1,200원');
+    check('investment does not inflate expense',$('expense').textContent==='86,900원');
+    check('investment does not inflate income',$('income').textContent==='2,800,000원');
+    check('investment does not inflate savings',$('savings').textContent==='300,000원');
+    $('reset').click();
+    check('reset clears investment subtotal',$('investments').textContent==='투자 0원');
+    check('reset clears investment test row',count()===6);
     const pre=document.createElement('pre');pre.id='poc-qa-results';pre.textContent=JSON.stringify({width:window.innerWidth,results});document.body.append(pre);
   }
   const pocSource=readFileSync(join(root,'qa/poc/ssulmo-responsive-poc-20261112.html'),'utf8');
@@ -224,7 +236,7 @@ try{
       if(!match)console.error('POC_CHROMIUM_DIAGNOSTICS '+JSON.stringify({width,status:run.status,stderrTail:run.stderr.slice(-1500),stdoutTail:run.stdout.slice(-1500)}));
       assert.ok(match,'PoC Chromium did not return DOM results');
       const data=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
-      assert.equal(data.results.length,13,'Expected 13 PoC checks per viewport');
+      assert.equal(data.results.length,21,'Expected 21 PoC checks per viewport');
       for(const t of data.results)console.log((t.pass?'PASS':'FAIL')+' poc '+width+'px '+t.name);
       count+=data.results.length;
       assert.ok(data.results.every(t=>t.pass),'PoC browser regression failed at '+width+'px');
