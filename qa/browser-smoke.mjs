@@ -184,7 +184,7 @@ try{
     const $=id=>document.getElementById(id);
     const count=()=>document.querySelectorAll('#allRows tr').length;
     const visible=el=>{const r=el.getBoundingClientRect();return getComputedStyle(el).display!=='none'&&r.width>0&&r.height>0;};
-    check('responsive device label',window.innerWidth>=480&&$('deviceLabel').textContent.includes(window.innerWidth<=720?'모바일':'PC'));
+    check('responsive device label',window.innerWidth>=320&&$('deviceLabel').textContent.includes(window.innerWidth<=720?'모바일':'PC'));
     check('reset button visible',visible($('reset')));
     check('no horizontal overflow',document.documentElement.scrollWidth<=window.innerWidth+1);
     check('initial six sample rows',count()===6);
@@ -227,7 +227,7 @@ try{
     const pocPath=join(pocTmp,'poc.html');
     writeFileSync(pocPath,pocSource.replace('</body>','<script>('+pocRunner.toString()+')();</script></body>'));
     let count=0;
-    for(const width of [500,1440]){
+    for(const width of [320,500,1440]){
       const browser=process.env.CHROMIUM||'chromium';
       const args=['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--window-size='+width+',900','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(pocPath).href];
       const run=spawnSync(browser,args,{encoding:'utf8',timeout:20000});
@@ -241,6 +241,7 @@ try{
       count+=data.results.length;
       assert.ok(data.results.every(t=>t.pass),'PoC browser regression failed at '+width+'px');
     }
+    assert.equal(count,63,'Expected 63 PoC checks across 320/500/1440px');
     console.log('POC_QA_SUMMARY PASS '+count+' FAIL 0');
   }finally{rmSync(pocTmp,{recursive:true,force:true});}
 }
