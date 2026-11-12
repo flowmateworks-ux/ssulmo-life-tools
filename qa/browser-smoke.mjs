@@ -4,7 +4,7 @@
 import {readFileSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
-import {spawnSync} from 'node:child_process';
+import {spawnSync,spawn} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 import assert from 'node:assert/strict';
 const root=resolve('.');
@@ -259,6 +259,54 @@ try{
     $('reset').click();
     const pre=document.createElement('pre');pre.id='poc-qa-results';pre.textContent=JSON.stringify({width:window.innerWidth,results});document.body.append(pre);
   }
+  // Chrome headless clamps --window-size=320 to 500 CSS pixels. Use CDP
+  // device emulation to verify the real 320px viewport instead of mislabelling 500px.
+  async function runPoc320WithCdp(browser,pocPath){
+    const profile=mkdtempSync(join(tmpdir(),'ssulmo-cdp-'));
+    const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+    const child=spawn(browser,['--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--no-first-run','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{stdio:['ignore','ignore','pipe']});
+    let stderr='',ws;
+    child.stderr.on('data',chunk=>{stderr=(stderr+chunk.toString()).slice(-3000);});
+    try{
+      let port;
+      for(let i=0;i<100;i++){
+        try{port=Number(readFileSync(join(profile,'DevToolsActivePort'),'utf8').split('\n')[0]);if(port)break;}catch{}
+        await sleep(100);
+      }
+      assert.ok(port,'CDP port unavailable: '+stderr);
+      const pages=await (await fetch('http://127.0.0.1:'+port+'/json/list')).json();
+      const page=pages.find(p=>p.type==='page'&&p.webSocketDebuggerUrl);
+      assert.ok(page,'CDP page target unavailable');
+      ws=new WebSocket(page.webSocketDebuggerUrl);
+      await new Promise((resolve,reject)=>{ws.addEventListener('open',resolve,{once:true});ws.addEventListener('error',reject,{once:true});});
+      let seq=0;
+      const pending=new Map();
+      ws.addEventListener('message',event=>{
+        const msg=JSON.parse(event.data);
+        if(msg.id&&pending.has(msg.id)){
+          const {resolve,reject}=pending.get(msg.id);pending.delete(msg.id);
+          msg.error?reject(Error(JSON.stringify(msg.error))):resolve(msg.result);
+        }
+      });
+      const send=(method,params={})=>new Promise((resolve,reject)=>{
+        const id=++seq;pending.set(id,{resolve,reject});
+        ws.send(JSON.stringify({id,method,params}));
+      });
+      await send('Emulation.setDeviceMetricsOverride',{width:320,height:900,deviceScaleFactor:1,mobile:true});
+      await send('Page.navigate',{url:pathToFileURL(pocPath).href});
+      for(let i=0;i<100;i++){
+        const response=await send('Runtime.evaluate',{expression:"({width:window.innerWidth,raw:document.getElementById('poc-qa-results')?.textContent||''})",returnByValue:true});
+        const data=response.result?.value;
+        if(data?.raw)return JSON.parse(data.raw);
+        await sleep(100);
+      }
+      throw Error('320px CDP DOM results missing; '+stderr);
+    }finally{
+      if(ws)ws.close();
+      child.kill('SIGKILL');
+      try{rmSync(profile,{recursive:true,force:true,maxRetries:10,retryDelay:100});}catch{}
+    }
+  }
   const pocSource=readFileSync(join(root,'qa/poc/ssulmo-responsive-poc-20261112.html'),'utf8');
   const pocTmp=mkdtempSync(join(tmpdir(),'ssulmo-poc-'));
   try{
@@ -267,14 +315,20 @@ try{
     let count=0;
     for(const width of [320,500,1440]){
       const browser=process.env.CHROMIUM||'chromium';
-      const args=['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--window-size='+width+',900','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(pocPath).href];
-      const run=spawnSync(browser,args,{encoding:'utf8',timeout:20000});
-      if(run.error)throw run.error;
-      const match=run.stdout.match(/<pre id="poc-qa-results">([^<]+)<\/pre>/);
-      if(!match)console.error('POC_CHROMIUM_DIAGNOSTICS '+JSON.stringify({width,status:run.status,stderrTail:run.stderr.slice(-1500),stdoutTail:run.stdout.slice(-1500)}));
-      assert.ok(match,'PoC Chromium did not return DOM results');
-      const data=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
+      let data;
+      if(width===320){
+        data=await runPoc320WithCdp(browser,pocPath);
+      }else{
+        const args=['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--window-size='+width+',900','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(pocPath).href];
+        const run=spawnSync(browser,args,{encoding:'utf8',timeout:20000});
+        if(run.error)throw run.error;
+        const match=run.stdout.match(/<pre id="poc-qa-results">([^<]+)<\/pre>/);
+        if(!match)console.error('POC_CHROMIUM_DIAGNOSTICS '+JSON.stringify({width,status:run.status,stderrTail:run.stderr.slice(-1500),stdoutTail:run.stdout.slice(-1500)}));
+        assert.ok(match,'PoC Chromium did not return DOM results');
+        data=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
+      }
       console.log('POC_VIEWPORT requested='+width+' actual='+data.width);
+      assert.equal(data.width,width,'Actual Chromium CSS viewport must match the claimed QA width');
       assert.equal(data.results.length,32,'Expected 32 PoC checks per viewport');
       for(const t of data.results)console.log((t.pass?'PASS':'FAIL')+' poc '+width+'px '+t.name);
       count+=data.results.length;
