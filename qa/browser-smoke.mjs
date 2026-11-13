@@ -78,11 +78,11 @@ try {
   const page=original.replace('</body>',`<script>${js.replaceAll('</script>','<\\/script>')}</script>${tests}</body>`);
   const path=join(tmp,'test.html');writeFileSync(path,page);
   const binary=process.env.CHROMIUM||'chromium';
-  const r=spawnSync(binary,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--virtual-time-budget=2000','--dump-dom',pathToFileURL(path).href],{encoding:'utf8',timeout:20000});
+  const r=spawnSync(binary,['--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--virtual-time-budget=2000','--dump-dom',pathToFileURL(path).href],{encoding:'utf8',timeout:60000});
   if(r.error)throw r.error;
   const match=r.stdout.match(/<pre id="qa-results">([^<]+)<\/pre>/);
   if (!match) {
-    console.error('CHROMIUM_DIAGNOSTICS '+JSON.stringify({binary,args:['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--virtual-time-budget=2000','--dump-dom'],status:r.status,signal:r.signal,stderrTail:r.stderr.slice(-4000),stdoutTail:r.stdout.slice(-4000),stdoutLength:r.stdout.length}));
+    console.error('CHROMIUM_DIAGNOSTICS '+JSON.stringify({binary,args:['--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--virtual-time-budget=2000','--dump-dom'],status:r.status,signal:r.signal,stderrTail:r.stderr.slice(-4000),stdoutTail:r.stdout.slice(-4000),stdoutLength:r.stdout.length}));
   }
   assert.ok(match,'Chromium did not return QA results; inspect CHROMIUM_DIAGNOSTICS above');
   const results=JSON.parse(match[1].replaceAll('&quot;','"').replaceAll('&amp;','&'));
@@ -116,7 +116,7 @@ try {
   const mobileHtml=original.replace('<link rel="stylesheet" href="style.css">','<style>'+css+'</style>')
     .replace('</body>',`<script>${js.replaceAll('</script>','<\\/script>')}</script>${mobileChecks}</body>`);
   const mobilePath=join(tmp,'mobile.html');writeFileSync(mobilePath,mobileHtml);
-  const mobile=spawnSync(binary,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--window-size=500,844','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(mobilePath).href],{encoding:'utf8',timeout:20000});
+  const mobile=spawnSync(binary,['--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--window-size=500,844','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(mobilePath).href],{encoding:'utf8',timeout:60000});
   if(mobile.error)throw mobile.error;
   const mobileMatch=mobile.stdout.match(new RegExp('<pre id="mobile-qa-results">([^<]+)</pre>'));
   if(!mobileMatch)console.error('MOBILE_DIAGNOSTICS '+JSON.stringify({status:mobile.status,stderrTail:mobile.stderr.slice(-2000),stdoutTail:mobile.stdout.slice(-2000)}));
@@ -163,7 +163,7 @@ try{
   const surveyPath=join(surveyTmp,'survey.html');
   writeFileSync(surveyPath,surveyPage);
   const browser=process.env.CHROMIUM||'chromium';
-  const run=spawnSync(browser,['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--window-size=500,844','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(surveyPath).href],{encoding:'utf8',timeout:20000});
+  const run=spawnSync(browser,['--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--window-size=500,844','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(surveyPath).href],{encoding:'utf8',timeout:60000});
   if(run.error)throw run.error;
   const match=run.stdout.match(/<pre id="survey-qa-results">([^<]+)<\/pre>/);
   if(!match)console.error('SURVEY_DIAGNOSTICS '+JSON.stringify({status:run.status,stderrTail:run.stderr.slice(-2000),stdoutTail:run.stdout.slice(-2000)}));
@@ -327,8 +327,8 @@ try{
       if(width===320){
         data=await runPoc320WithCdp(browser,pocPath);
       }else{
-        const args=['--headless','--no-sandbox','--disable-gpu','--disable-background-networking','--window-size='+width+',900','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(pocPath).href];
-        const run=spawnSync(browser,args,{encoding:'utf8',timeout:20000});
+        const args=['--headless','--no-sandbox','--disable-gpu','--disable-dev-shm-usage','--disable-background-networking','--window-size='+width+',900','--force-device-scale-factor=1','--virtual-time-budget=2000','--dump-dom',pathToFileURL(pocPath).href];
+        const run=spawnSync(browser,args,{encoding:'utf8',timeout:60000});
         if(run.error)throw run.error;
         const match=run.stdout.match(/<pre id="poc-qa-results">([^<]+)<\/pre>/);
         if(!match)console.error('POC_CHROMIUM_DIAGNOSTICS '+JSON.stringify({width,status:run.status,stderrTail:run.stderr.slice(-1500),stdoutTail:run.stdout.slice(-1500)}));
