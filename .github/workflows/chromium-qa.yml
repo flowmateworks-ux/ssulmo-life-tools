@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - test/calculator-validation-20261105
+      - work/launch-20261117
   workflow_dispatch:
 permissions:
   contents: read
@@ -28,10 +29,16 @@ jobs:
         run: |
           set -o pipefail
           node qa/browser-smoke.mjs 2>&1 | tee chromium-qa.log
+      - name: Run purchase-readiness acceptance
+        run: |
+          set -o pipefail
+          node qa/readiness-smoke.mjs 2>&1 | tee readiness-qa.log
       - name: Preserve raw QA output
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: chromium-qa-log
-          path: chromium-qa.log
+          path: |
+            chromium-qa.log
+            readiness-qa.log
           if-no-files-found: warn
