@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="description" content="쓸모산책 Google Sheets 가계부 v2.1 무료 베타 참가자 모집 안내. 현재 신청 준비 중입니다.">
+<title>가계부 무료 베타 모집 준비 | 쓸모산책</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#193d2d;background:#f7faf6}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:0}
+a{color:#166347}a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid #126d4d;outline-offset:4px}
+.wrap{max-width:980px;margin-inline:auto;padding:20px clamp(14px,4vw,30px) 70px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 0 27px}
+.brand{font-weight:850;font-size:19px;letter-spacing:-.5px}.home{font-size:14px;font-weight:700;text-underline-offset:3px}
+.hero{border-radius:25px;padding:clamp(25px,6vw,54px);background:linear-gradient(145deg,#e3f1e5,#eef6ed);border:1px solid #cce2d0}
+.eyebrow{display:inline-block;background:#fff;border:1px solid #bbdac2;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:800}
+h1{font-size:clamp(28px,5.2vw,45px);line-height:1.32;letter-spacing:-1.2px;margin:19px 0 16px}
+h2{font-size:clamp(20px,3vw,25px);line-height:1.4;letter-spacing:-.5px;margin:0 0 14px}h3{font-size:17px;margin:0 0 9px}
+p,li{line-height:1.75;overflow-wrap:anywhere}.lead{max-width:690px;color:#405d4c;margin:0}
+.cta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:27px}
+button{font:inherit;border:0;border-radius:12px;padding:14px 21px;min-height:48px;font-weight:800}
+button:disabled{background:#cfd8d1;color:#44594b;cursor:not-allowed;opacity:1}
+.secondary{display:inline-flex;align-items:center;padding:12px 18px;min-height:48px;border:1px solid #a9c8b2;border-radius:12px;text-decoration:none;font-weight:800;background:#fff}
+.state{font-size:14px;color:#405d4c;margin-top:15px}.state strong{color:#805b14}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:20px}
+.panel{background:white;border:1px solid #d6e5d9;border-radius:17px;padding:clamp(18px,3vw,26px);min-width:0}
+ul,ol{padding-left:22px;margin:7px 0}.section{margin-top:36px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.step{background:#fff;border:1px solid #d6e5d9;border-radius:16px;padding:21px;min-width:0}
+.num{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:#e3f1e5;color:#135a40;font-weight:850;margin-bottom:12px}
+.small{font-size:14px;color:#486250}.alert{background:#fffaf0;border:1px solid #ead9b6;border-radius:15px;padding:20px;margin-top:20px}
+.status{font-weight:800;color:#855c17}.faq details{background:white;border:1px solid #d6e5d9;border-radius:13px;padding:16px 19px;margin-top:10px}.faq summary{cursor:pointer;font-weight:800;line-height:1.6}
+footer{font-size:13px;color:#577160;margin-top:37px;padding-top:20px;border-top:1px solid #d9e7dc}
+@media(max-width:700px){.steps{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.wrap{padding-top:12px}.hero{border-radius:17px}.cta{align-items:stretch;flex-direction:column}.cta button,.cta a{width:100%;justify-content:center;text-align:center}}
+</style>
+</head>
+<body><main class="wrap">
+<header><span class="brand">쓸모산책 · 가계부</span><a class="home" href="./index.html">무료 계산기 홈페이지</a></header>
+<section class="hero" aria-labelledby="beta-heading">
+<span class="eyebrow">Google Sheets 가계부 v2.1 · 무료 베타</span>
+<h1 id="beta-heading">가계부를 7일 동안 함께 써보실 분을 찾습니다</h1>
+<p class="lead">아이폰·갤럭시에서 직접 거래를 입력하고 월간 합계를 확인해 보세요. 편했던 점과 막혔던 점을 7일차에 비공개 설문 한 번으로 알려주시는 체험입니다. 현재 신청은 열리지 않았습니다.</p>
+<div class="cta"><button id="apply" type="button" disabled aria-describedby="application-status">신청 준비 중 · 접수 전</button><a class="secondary" href="#steps">참가 절차 살펴보기</a></div>
+<p class="state" id="application-status" role="status"><strong>모집 상태: 접수 전</strong> · 신청 링크와 안내·사본 전달 절차를 검증한 뒤 공개합니다.</p>
+</section>
+<div class="grid" aria-label="참가 정보">
+<section class="panel" aria-labelledby="target"><h2 id="target">누가 참여하나요?</h2><ul>
+<li><strong>총 10명 목표:</strong> 아이폰 5명, 갤럭시 5명</li>
+<li>그중 <strong>5명은 PC에서도</strong> 동일 과제 수행 (추가 5명이 아닙니다)</li>
+<li>Google 계정과 Google Sheets 앱 사용 가능자</li>
+<li>7일차 비공개 설문 1회 참여 가능자</li>
+</ul></section>
+<section class="panel" aria-labelledby="scope"><h2 id="scope">무엇을 체험하나요?</h2><ul>
+<li>본인 계정에 가계부 <strong>개별 사본</strong> 생성</li>
+<li>날짜·유형·분류·메모·금액 직접 입력</li>
+<li>거래 오류 표시와 월간 합계 확인</li>
+<li>다른 날 다시 열어 사용해 보기</li>
+</ul><p class="small">별도 앱이나 은행·카드 자동 연동 상품이 아닙니다.</p></section>
+</div>
+<section class="section" id="steps" aria-labelledby="steps-heading"><h2 id="steps-heading">신청부터 체험까지</h2>
+<div class="steps">
+<div class="step"><span class="num" aria-hidden="true">1</span><h3>신청 및 참가 안내</h3><p>모집 시작 후 공개 신청 폼에서 연락용 이메일과 사용 기기를 제출합니다. 선정·참여 안내 방식은 개통 전에 확정합니다.</p></div>
+<div class="step"><span class="num" aria-hidden="true">2</span><h3>가계부 사본 만들기</h3><p>안내를 받은 참가자가 자신의 Google 계정으로 개별 사본을 만듭니다. 사본 생성과 원본 보호 검증 후에만 실제 경로를 제공합니다.</p></div>
+<div class="step"><span class="num" aria-hidden="true">3</span><h3>7일 사용 후 비공개 설문</h3><p>첫 거래와 합계 확인, 다른 날 재사용을 체험합니다. 7일차에 어려웠던 점을 비공개 설문 1회로 알려주세요.</p></div>
+</div></section>
+<section class="alert" aria-labelledby="privacy"><h2 id="privacy">개인정보와 모집 안내</h2>
+<p>신청 단계에서는 연락용 이메일·주사용 휴대폰 종류·PC 병행 여부만 받을 예정입니다. 신청 자료의 보관 기간·삭제 방법·문의 창구는 접수 시작 전에 확정해 공지합니다. 실제 지출 금액이나 계좌정보는 보내지 마세요.</p>
+<p class="status">현재 신청·문의 접수 경로는 미개통입니다. 이 화면에서 응답을 제출하거나 사본을 받을 수 없습니다.</p>
+</section>
+<section class="section faq" aria-labelledby="faq-heading"><h2 id="faq-heading">자주 묻는 질문</h2>
+<details><summary>참가 비용이 있나요?</summary><p>이번 베타 체험은 무료입니다. 유료 상품 구매나 결제를 요구하지 않습니다.</p></details>
+<details><summary>PC로도 참여할 수 있나요?</summary><p>아이폰·갤럭시 참가자 10명 중 5명이 PC에서도 같은 과제를 수행할 예정입니다. PC만 사용하는 별도 모집은 현재 예정돼 있지 않습니다.</p></details>
+<details><summary>신청하면 바로 사본을 받나요?</summary><p>아닙니다. 참가 안내와 계정별 사본 생성·원본 접근 제한 검증 후 안내할 예정입니다. 지금은 접수 전입니다.</p></details>
+<details><summary>모집이 마감되면 어떻게 되나요?</summary><p>모집이 시작되면 접수 상태와 마감 여부를 이 페이지에 표시합니다. 현재는 접수 전이며 정원 10명이 확정된 상태가 아닙니다.</p></details>
+</section>
+<footer>쓸모산책 · 무료 베타 모집 검토본. 별도 결제·회원가입·외부 응답 전송 기능은 연결되어 있지 않습니다.</footer>
+</main></body></html>
