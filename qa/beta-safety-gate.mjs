@@ -1,0 +1,28 @@
+// Non-deploy beta safety gate. Source/static invariants only; NOT a live signup or phone QA.
+import {readFileSync,existsSync} from 'node:fs';
+import {resolve,join} from 'node:path';
+import assert from 'node:assert/strict';
+const root=resolve('.');
+const beta=readFileSync(join(root,'beta.html'),'utf8');
+const privacy=readFileSync(join(root,'privacy.html'),'utf8');
+const checks=[];
+const check=(name,ok)=>checks.push({name,pass:!!ok});
+const tags=[...beta.matchAll(/<a\b[^>]*\bhref="([^"]+)"/gi)].map(m=>m[1]);
+const localTargets=tags.filter(h=>h.startsWith('./')).map(h=>join(root,h.slice(2).split('#')[0]));
+const hashTargets=tags.filter(h=>h.startsWith('#')).map(h=>h.slice(1));
+check('beta remains noindex until approved', /<meta\s+name="robots"\s+content="noindex,nofollow"/.test(beta));
+check('apply button intentionally closed', /<button\b[^>]*id="apply"[^>]*\bdisabled\b/.test(beta));
+check('beta status says reception closed', /모집 상태:\s*접수 전/.test(beta));
+check('all anchors are relative files or on-page sections',tags.length>=3&&tags.every(h=>h.startsWith('./')||h.startsWith('#')));
+check('relative target files exist',localTargets.every(existsSync));
+check('fragment targets present',hashTargets.every(id=>new RegExp('\\bid="'+id+'"').test(beta)));
+check('no private Google application/file links embedded',!/(?:docs\.google\.com\/(?:forms|spreadsheets)\/d\/|forms\.gle\/)/i.test(beta+privacy));
+check('no external user submission form or script in beta',!/<form\b|<script\b|<iframe\b/i.test(beta));
+check('10 participants, 5 each, PC five not additional',/총 10명/.test(beta)&&/아이폰 5명, 갤럭시 5명/.test(beta)&&/추가 5명이 아닙니다/.test(beta));
+check('7-day private feedback described',/7일차/.test(beta)&&/비공개 설문/.test(beta));
+check('contact, device, PC selection disclosures on both pages', [beta,privacy].every(s=>/연락 이메일/.test(s)&&/iPhone/.test(s)&&/갤럭시/.test(s)&&/PC 병행/.test(s)));
+check('14-day retention proposal disclosed on both pages', [beta,privacy].every(s=>/7일차 설문 마감/.test(s)&&/최대 14일/.test(s)&&/승인 전/.test(s)));
+check('not falsely claiming contact already enabled',/문의·신청을 받지 않습니다/.test(beta)&&/발신·회신 검증 전/.test(privacy));
+for(const x of checks)console.log((x.pass?'PASS ':'FAIL ')+x.name);
+console.log('BETA_STATIC_GATE '+JSON.stringify({pass:checks.filter(x=>x.pass).length,total:checks.length,checks}));
+assert.ok(checks.every(x=>x.pass),'Beta static safety gate failed: review disclosures/approval status');
