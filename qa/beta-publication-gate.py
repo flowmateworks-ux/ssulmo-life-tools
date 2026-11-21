@@ -21,6 +21,9 @@ SAFE_VIEWFORM = re.compile(r"/forms/d/e/[A-Za-z0-9_-]+/viewform\Z")
 EMAIL_RE = re.compile(r"(?<![\w.+-])[\w.+-]+@(?:[\w-]+\.)+[A-Za-z]{2,}(?![\w-])")
 DISCLOSE = ("연락 이메일", "iPhone", "갤럭시", "PC 병행", "7일차 설문 마감",
             "최대 14일", "미선정자", "삭제", "문의")
+# Only public navigational links explicitly reviewed for this beta page.
+# A relative ./ path is not automatically safe (it could expose qa/ or internal assets).
+SAFE_LOCAL_LINKS = {"./index.html", "./privacy.html", "#steps"}
 
 class HTML(HTMLParser):
     def __init__(self, src):
@@ -77,10 +80,10 @@ def check(beta, privacy, mode, mock_mode=False):
                      'drive.google.com' in x) for x in links),
             'internal/editor/spreadsheet/shortener/analytics URL forbidden')
     for link in links:
-        if link.startswith('#') or link.startswith('./'):
+        if link in SAFE_LOCAL_LINKS:
             continue
         require(mode == 'approved' and viewform(link),
-                'unapproved external link: ' + link[:100])
+                'unapproved link (including internal/QA path): ' + link[:100])
     if mode == 'prelaunch':
         apply = b.by_id('apply')
         require(bool(apply and apply[0][0] == 'button' and
@@ -145,6 +148,9 @@ def selftest(actual_beta, actual_privacy):
         passed = (not errors) == expected
         results.append((name, passed, errors))
     run('actual prelaunch stays closed', True, actual_beta, actual_privacy, 'prelaunch')
+    run('prelaunch internal QA relative link rejected', False,
+        actual_beta.replace('</footer>', '<a href="./qa/internal-review.html">QA</a></footer>'),
+        actual_privacy, 'prelaunch')
     b, p = mock()
     run('synthetic approved markup accepted', True, b, p, 'approved', mock_mode=True)
     cases = [
@@ -170,6 +176,10 @@ def selftest(actual_beta, actual_privacy):
       ('private survey URL', b.replace('<a href="#steps">',
                               '<a href="https://docs.google.com/forms/d/e/SEVENDAY/viewform">설문</a>'
                               '<a href="#steps">'), p),
+      ('local internal QA link', b.replace('<a href="#steps">',
+                             '<a href="./qa/internal-review.html">QA</a><a href="#steps">'), p),
+      ('relative traversal link', b.replace('<a href="#steps">',
+                               '<a href="../internal/response.csv">내부</a><a href="#steps">'), p),
       ('draft disclosure', b + '<p>승인 전 검토안</p>', p),
       ('unlabeled status', b.replace('aria-describedby="status"', ''), p),
       ('missing privacy policy', b, p.replace('미선정자', '비참가자')),
