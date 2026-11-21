@@ -32,6 +32,10 @@ jobs:
         run: |
           set -o pipefail
           node qa/beta-safety-gate.mjs 2>&1 | tee beta-safety-gate.log
+      - name: Test beta prelaunch and mock-approved URL gates (NOT live signup)
+        run: |
+          set -o pipefail
+          python3 qa/beta-publication-gate.py --self-test 2>&1 | tee beta-publication-gate.log
       - name: Preserve raw QA output
         if: always()
         uses: actions/upload-artifact@v4
@@ -40,4 +44,5 @@ jobs:
           path: |
             chromium-qa.log
             beta-safety-gate.log
+            beta-publication-gate.log
           if-no-files-found: warn
