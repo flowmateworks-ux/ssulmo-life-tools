@@ -65,8 +65,18 @@ def check(beta, privacy, mode, mock_mode=False):
         if not ok:
             errors.append(reason)
     require(len(b.by_id('apply')) == 1, 'id=apply must be unique')
-    require(not (b.tags('form') or b.tags('script') or b.tags('iframe')),
-            'embedded form/script/iframe blocked')
+    # A valid Forms viewform href is insufficient if the page can redirect or
+    # send visitor data through unrelated HTML/CSS/inline event handlers.
+    blocked_tags = {'form', 'script', 'iframe', 'input', 'textarea', 'select',
+                    'img', 'object', 'embed', 'base', 'link', 'svg'}
+    require(not any(tag in blocked_tags for tag, _ in b.nodes),
+            'unapproved interactive, embedded or external resource blocked')
+    require(not any(name.startswith('on') for _, attrs in b.nodes for name in attrs),
+            'inline event handler blocked')
+    require(not any(tag == 'meta' and attrs.get('http-equiv', '').lower() == 'refresh'
+                    for tag, attrs in b.nodes), 'meta redirect blocked')
+    require(not re.search(r'(?i)@import\\b|url\\s*\\(', beta),
+            'external CSS URL/import blocked')
     require(all(w in b.text and w in p.text for w in DISCLOSE),
             'disclosure scope/retention/contacts differ or missing')
     require('비공개 설문' in b.text and '7일' in b.text,
@@ -180,6 +190,10 @@ def selftest(actual_beta, actual_privacy):
                              '<a href="./qa/internal-review.html">QA</a><a href="#steps">'), p),
       ('relative traversal link', b.replace('<a href="#steps">',
                                '<a href="../internal/response.csv">내부</a><a href="#steps">'), p),
+      ('inline event redirect', b.replace('id="apply"', 'id="apply" onclick="location.href=\'https://example.org\'"'), p),
+      ('meta refresh redirect', b.replace('<body>', '<head><meta http-equiv="refresh" content="0;url=https://example.org"></head><body>'), p),
+      ('remote image beacon', b.replace('</body>', '<img src="https://example.org/pixel"></body>'), p),
+      ('CSS remote fetch', b.replace('</body>', '<style>body{background:url(https://example.org/pixel)}</style></body>'), p),
       ('draft disclosure', b + '<p>승인 전 검토안</p>', p),
       ('unlabeled status', b.replace('aria-describedby="status"', ''), p),
       ('missing privacy policy', b, p.replace('미선정자', '비참가자')),
