@@ -75,7 +75,7 @@ def check(beta, privacy, mode, mock_mode=False):
             'inline event handler blocked')
     require(not any(tag == 'meta' and attrs.get('http-equiv', '').lower() == 'refresh'
                     for tag, attrs in b.nodes), 'meta redirect blocked')
-    require(not re.search(r'(?i)@import\\b|url\\s*\\(', beta),
+    require(not re.search(r'(?i)@import\b|url\s*\(', beta),
             'external CSS URL/import blocked')
     require(all(w in b.text and w in p.text for w in DISCLOSE),
             'disclosure scope/retention/contacts differ or missing')
